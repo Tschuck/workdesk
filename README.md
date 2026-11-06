@@ -9,6 +9,10 @@
   Built to manage <strong>hybrid AI development</strong> natively: you and your AI agents, on many tasks at once.
 </p>
 
+<p align="center">
+  <a href="https://tschuck.github.io/workdesk/"><strong>Documentation: tschuck.github.io/workdesk</strong></a>
+</p>
+
 ---
 
 ## Overview

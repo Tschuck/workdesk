@@ -34,10 +34,15 @@ module.exports = {
         { to: '/getting-started', label: 'Getting started', position: 'left' },
         { to: '/use-cases', label: 'Use cases', position: 'left' },
         { to: '/features', label: 'Features', position: 'left' },
-        { to: '/developer-guide', label: 'Developer guide', position: 'left' }
+        { to: '/developer-guide', label: 'Developer guide', position: 'left' },
+        { href: 'https://github.com/tschuck/workdesk', label: 'GitHub', position: 'right' }
       ]
     },
-    footer: { style: 'dark', copyright: 'WorkDesk is source-available under the PolyForm Shield License 1.0.0.' },
+    footer: {
+      style: 'dark',
+      links: [{ title: 'Project', items: [{ label: 'WorkDesk on GitHub', href: 'https://github.com/tschuck/workdesk' }] }],
+      copyright: 'WorkDesk is source-available under the PolyForm Shield License 1.0.0.'
+    },
     prism: { theme: themes.github, darkTheme: themes.dracula, additionalLanguages: ['bash', 'json', 'yaml'] }
   }
 }
