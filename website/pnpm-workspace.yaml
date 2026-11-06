@@ -1,3 +1,5 @@
 allowBuilds:
   # only prints a banner
   core-js: false
+# an ignored build script is not an error
+strictDepBuilds: false

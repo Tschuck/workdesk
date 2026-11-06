@@ -58,7 +58,7 @@ The docs are a [Docusaurus](https://docusaurus.io) site: the pages are in [`docs
 | [Decisions](docs/adr/index.md) | architecture decision records |
 
 ```bash
-pnpm --dir website install --ignore-workspace   # once
+pnpm --dir website install   # once
 pnpm docs:dev                                   # live preview at http://localhost:3000
 pnpm docs:build                                 # production build, fails on a broken link
 ```

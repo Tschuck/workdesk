@@ -96,7 +96,7 @@ The app is **unsigned** (no Apple developer certificate). On first start right-c
 The docs are this folder (`docs/`), built with [Docusaurus](https://docusaurus.io) from `website/`. It has its own dependencies, so the app's install is not touched.
 
 ```bash
-pnpm --dir website install --ignore-workspace   # once
+pnpm --dir website install   # once
 pnpm docs:dev                                   # live preview at http://localhost:3000
 pnpm docs:build                                 # the production build, with a strict check of every link and image
 ```
