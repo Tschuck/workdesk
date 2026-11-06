@@ -1,0 +1,12 @@
+/* Settings for GitLab, Jira and the git hosts. Items with an active state: square corners and the thin yellow bar on the left. */
+.provider-untested { margin: 0 0 10px; padding: 6px 10px; border-left: 3px solid var(--yellow); background: rgb(var(--yellow-rgb) / .1); color: var(--fg-bright); font-size: 12px; }
+.provider-form { flex-wrap: wrap; gap: 6px; }
+.provider-form input { min-width: 240px; }
+.provider-result { margin: 8px 0 0; font-size: 12px; }
+.provider-result.good { color: var(--green); }
+.provider-result.bad { color: var(--red); }
+.provider-found { margin-top: 10px; }
+.provider-scope { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.provider-scope span { color: var(--dim); min-width: 110px; }
+.provider-scope button { border-radius: 0; }
+.provider-scope button.on { background: rgb(var(--yellow-rgb) / .1); box-shadow: inset 3px 0 0 var(--yellow); color: var(--fg-bright); }

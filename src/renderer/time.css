@@ -1,0 +1,32 @@
+/* the time page and the box on a WorkDesk's Details page; square corners */
+.time-page { max-width: 980px; }
+.time-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.time-nav { display: flex; align-items: center; gap: 8px; }
+.time-nav button { min-width: 28px; }
+.time-totals { display: flex; gap: 28px; flex-wrap: wrap; margin: 4px 0 16px; color: var(--dim); font-size: 13px; }
+.time-totals strong { color: var(--fg-bright); font-size: 18px; margin-left: 6px; font-variant-numeric: tabular-nums; }
+/* the bars of the week are the same as in the box of a WorkDesk, a little wider */
+.time-page .time-box-rows { max-width: 640px; margin: 0 0 20px; }
+.time-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.time-table th, .time-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.time-table th:first-child, .time-table td:first-child { text-align: left; white-space: normal; width: 100%; }
+.time-table th { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: rgb(var(--fg-rgb) / .45); }
+.time-table th.today { color: var(--yellow); }
+.time-table td.zero { color: rgb(var(--fg-rgb) / .25); }
+.time-table td.sum { color: var(--fg-bright); font-weight: 600; }
+.time-table tr.cleared td { color: var(--dim); font-style: italic; }
+.time-table tfoot td { border-bottom: none; border-top: 2px solid var(--line); font-weight: 600; color: var(--fg-bright); }
+.time-table .link-btn { text-align: left; }
+.time-page > .hint { margin-top: 12px; }
+
+.time-box-sums { display: flex; gap: 20px; font-size: 13px; color: var(--dim); }
+.time-box-sums strong { color: var(--fg-bright); margin-left: 4px; }
+.time-box-rows { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.time-box-rows li { display: grid; grid-template-columns: 92px 1fr 64px; align-items: center; gap: 10px; font-size: 12px; }
+.time-box-label { color: var(--dim); white-space: nowrap; }
+.time-box-track { display: block; height: 10px; background: rgb(var(--fg-rgb) / .06); }
+.time-box-fill { display: block; height: 100%; background: rgb(var(--yellow-rgb) / .5); }
+.time-box-rows li.today .time-box-fill { background: var(--yellow); }
+.time-box-rows li.today .time-box-label { color: var(--fg-bright); }
+.time-box-value { text-align: right; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.time-box-rows li.today .time-box-value { color: var(--fg-bright); }

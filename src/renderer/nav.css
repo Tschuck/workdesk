@@ -1,0 +1,14 @@
+/* Search over all WorkDesks, time spent. Items with an active state: square corners and the thin yellow bar on the left. */
+.search-all-modes { display: flex; align-items: center; gap: 2px; }
+.search-all-modes button { border-radius: 0; background: none; border: 0; color: var(--dim); padding: 4px 10px; cursor: pointer; }
+.search-all-modes button:hover { color: var(--fg-bright); }
+.search-all-modes button.on { color: var(--fg-bright); background: rgb(var(--yellow-rgb) / .1); box-shadow: inset 3px 0 0 var(--yellow); }
+.search-all-opt { margin-left: auto; display: flex; align-items: center; gap: 4px; color: var(--dim); font-size: 12px; cursor: pointer; }
+.search-all-opt + .search-all-opt { margin-left: 6px; }
+.search-all-title { font-family: var(--mono, monospace); font-size: 12px; max-width: 55%; }
+
+.time-spent { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; color: var(--dim); font-size: 12px; margin: 4px 0; }
+.time-spent strong { color: var(--fg-bright); font-weight: 600; }
+.time-days { display: flex; gap: 8px; }
+.time-days span { white-space: nowrap; }
+

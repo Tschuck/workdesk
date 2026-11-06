@@ -1,0 +1,5 @@
+{
+  "1": { "startupMs": 2500, "appMemoryMb": 1100, "typingP95Ms": 40 },
+  "5": { "startupMs": 2500, "appMemoryMb": 1500, "typingP95Ms": 40 },
+  "15": { "startupMs": 2500, "appMemoryMb": 2400, "typingP95Ms": 40 }
+}

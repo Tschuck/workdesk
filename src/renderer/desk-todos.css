@@ -1,0 +1,58 @@
+/* Todos in a desk, the desk note, "What next?" and the capture dialog */
+.desk-todos { padding: 8px 12px; border-bottom: 1px solid rgb(var(--fg-rgb) / .12); display: flex; flex-direction: column; gap: 6px; }
+.desk-todos-head { display: flex; align-items: center; gap: 8px; }
+.desk-todos-head .add-button { margin-left: auto; width: 22px; height: 22px; font-size: 15px; }
+.desk-todos-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.desk-todos-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 2px 4px; border-radius: 4px; }
+.desk-todos-list li:hover { background: var(--faint); }
+.desk-todos-list li.dragging { opacity: .35; }
+.desk-todos-list li.drop-before { box-shadow: 0 -2px 0 var(--blue); }
+.desk-todos-list li.drop-after { box-shadow: 0 2px 0 var(--blue); }
+.desk-todos-list li.done .desk-todo-title { text-decoration: line-through; opacity: .55; }
+.desk-todos-list li.overdue .desk-todo-due { background: rgb(var(--yellow-rgb) / .25); color: var(--yellow); }
+.desk-todo-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desk-todo-tools { display: none; gap: 6px; align-items: center; }
+.desk-todos-list li:hover .desk-todo-tools, .desk-todos-list li:focus-within .desk-todo-tools { display: flex; }
+.desk-todo-tools .link-btn { background: none; border: none; color: var(--dim); cursor: pointer; padding: 0 2px; font-size: 11px; }
+.desk-todo-tools .link-btn:hover:not(:disabled) { color: var(--fg-bright); }
+.desk-todo-tools .link-btn:disabled { opacity: .3; cursor: default; }
+.desk-todo-tools .link-btn.danger:hover { color: var(--red, #e5534b); }
+.snooze { font-size: 11px; }
+.desk-todo-due-edit { flex-basis: 100%; display: flex; gap: 8px; align-items: center; padding-left: 24px; }
+
+.desk-note-body { height: 260px; display: flex; flex-direction: column; min-height: 0; padding-top: 8px; }
+.desk-note-body .md-area { resize: none; flex: 1; min-height: 0; }
+
+.what-next { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+.what-next h2 { font-size: 16px; color: var(--fg-bright); }
+.what-next ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.what-next li { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 4px; }
+.what-next li:hover { background: var(--faint); }
+.what-next .next-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.what-next .next-kind { width: 76px; flex: none; color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.what-next li.overdue .next-kind { color: var(--yellow); }
+.what-next .link-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 12px; }
+.sidebar-count { margin-left: 6px; }
+.desk-todo-title { cursor: pointer; }
+.schedule-form { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.schedule-form input:not([type=time]) { flex: 1; min-width: 160px; }
+.schedule-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.schedule-list li { display: flex; align-items: center; gap: 10px; padding: 4px 6px; border-radius: 4px; }
+.schedule-list li.paused .schedule-name { opacity: .55; }
+.schedule-list .schedule-name { flex: 1; min-width: 0; }
+.template-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.template-row { border: 1px solid rgb(var(--fg-rgb) / .15); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; }
+.template-head { display: flex; align-items: center; gap: 8px; }
+.template-name { font-weight: 600; min-width: 200px; }
+.template-body { display: flex; flex-direction: column; gap: 8px; }
+.template-body textarea { width: 100%; font: inherit; }
+/* the editor was taller (min-height 320px) than its box and spilled over the cards below */
+.desk-note-body .md-area, .desk-note-body .md-preview { min-height: 0; }
+.desk-note-body .md-preview { flex: 1; overflow: auto; }
+
+/* in a narrow column (the Dashboard's side): the title and the buttons on the first line, what kind of thing it is under it */
+.dash-side .what-next li { flex-wrap: wrap; row-gap: 0; }
+.dash-side .what-next .next-title { order: 1; }
+.dash-side .what-next li > button, .dash-side .what-next li > select { order: 2; white-space: nowrap; }
+.dash-side .what-next .next-kind { order: 3; flex: 1 0 100%; width: auto; padding-left: 2px; line-height: 1.2; }
+.dash-side .what-next .next-kind:empty { display: none; }

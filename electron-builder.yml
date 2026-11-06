@@ -1,0 +1,34 @@
+appId: dev.tschuck.workdesk
+productName: WorkDesk
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: cli/workdesk.mjs
+    to: cli/workdesk.mjs
+  - from: cli/control-args.mjs
+    to: cli/control-args.mjs
+  - from: skills
+    to: skills
+asarUnpack:
+  - "**/node_modules/node-pty/**"
+mac:
+  category: public.app-category.developer-tools
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch: [arm64]
+  # the questions macOS asks before a web page may use the camera or the microphone (meetings)
+  extendInfo:
+    NSCameraUsageDescription: Web pages in WorkDesk's browser tabs can use the camera for meetings, when you allow it.
+    # WorkDesk can be chosen as the default browser: web links from other apps arrive as open-url
+    CFBundleURLTypes:
+      - CFBundleURLName: Web site URL
+        CFBundleURLSchemes: [http, https]
+    NSMicrophoneUsageDescription: Web pages in WorkDesk's browser tabs can use the microphone for meetings, when you allow it.
+  # unsigned on purpose (v1): no Apple developer certificate, so no signing and no notarization
+  identity: null
+dmg:
+  title: WorkDesk

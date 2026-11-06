@@ -1,0 +1,16 @@
+.orch-page { display: flex; flex: 1; min-width: 0; min-height: 0; width: 100%; max-width: none !important; }
+.orch-side { width: 320px; flex: none; overflow: auto; padding: 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+.orch-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.orch-bar { display: flex; align-items: center; gap: 14px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+.orch-bar h2 { margin: 0; font-size: 15px; }
+.orch-account { display: flex; align-items: center; gap: 8px; }
+.orch-note { color: var(--yellow); }
+.orch-term { flex: 1; min-height: 0; display: flex; }
+.orch-term > * { flex: 1; min-width: 0; }
+
+.orch-history ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.orch-history button { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; width: 100%; text-align: left; background: none; border: none; padding: 5px 6px; color: inherit; cursor: pointer; }
+.orch-history button:hover { background: var(--faint); }
+.orch-h-desk { color: var(--fg-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.orch-h-what { grid-column: 2; color: var(--dim); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.overview-orch { color: var(--purple); text-transform: uppercase; letter-spacing: .05em; font-size: 9.5px; }

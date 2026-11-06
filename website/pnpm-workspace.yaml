@@ -1,0 +1,3 @@
+allowBuilds:
+  # only prints a banner
+  core-js: false

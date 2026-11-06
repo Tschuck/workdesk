@@ -1,0 +1,6 @@
+# pnpm blocks dependency build scripts unless they are allowed here
+allowBuilds:
+  # native terminal binding, compiled for Electron by the postinstall script
+  node-pty: true
+  # only needed to build Windows installers
+  electron-winstaller: false

@@ -1,0 +1,27 @@
+/* The shared add/edit dialog and the + button on page heads. Square corners throughout. */
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.page-head h2 { margin: 0; }
+/* a plain icon button like the others: no colour, no frame until hovered */
+.add-button { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border-radius: 0; background: none; border: 1px solid transparent; color: rgb(var(--fg-rgb) / .7); cursor: pointer; flex: none; vertical-align: middle; }
+.add-button svg { width: 16px; height: 16px; }
+.add-button:hover:not(:disabled) { background: rgb(var(--fg-rgb) / .1); color: var(--fg-bright); }
+.add-button:disabled { opacity: .4; cursor: default; }
+
+.form-modal { border-radius: 0; }
+.form-modal .form-modal-body { display: flex; flex-direction: column; gap: 10px; max-height: 66vh; overflow: auto; }
+.form-modal .form-modal-body input:not([type='checkbox']):not([type='radio']):not([type='color']), .form-modal .form-modal-body select, .form-modal .form-modal-body textarea { width: 100%; box-sizing: border-box; font-size: 13px; }
+.form-modal .modal-extra { margin-right: auto; display: flex; gap: 8px; }
+.form-modal .error-text { margin: 0; }
+.form-modal .field small.hint { font-size: 11px; }
+.form-modal .row { display: flex; align-items: center; gap: 8px; }
+.form-modal .row > input[type='text'] { flex: 1; }
+
+h2 > .add-button { margin-left: 8px; }
+
+/* the WorkDesks to combine */
+.combine-list { list-style: none; margin: 0; padding: 0; max-height: 40vh; overflow: auto; border: 1px solid var(--line); }
+.combine-list li { border-bottom: 1px solid var(--line); }
+.combine-list li:last-child { border-bottom: none; }
+.combine-list .check { display: flex; align-items: baseline; gap: 10px; padding: 7px 10px; cursor: pointer; }
+.combine-list .check:hover { background: rgb(var(--fg-rgb) / .05); }
+.combine-list .combine-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

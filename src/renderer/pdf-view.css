@@ -1,0 +1,8 @@
+.pdf-view { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.pdf-bar { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-bottom: 1px solid var(--line); background: var(--bg-dark); }
+.pdf-bar input { width: 220px; }
+.pdf-bar input.not-found { outline: 1px solid var(--red, #e05d6f); }
+.pdf-count { min-width: 70px; }
+/* pdf.js needs its container to be absolutely positioned (and to scroll): the body takes the space, the container fills it */
+.pdf-body { position: relative; flex: 1; min-height: 0; }
+.pdf-container { position: absolute; inset: 0; overflow: auto; background: var(--bg-dark); outline: none; }

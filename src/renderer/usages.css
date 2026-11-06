@@ -1,0 +1,30 @@
+/* Find usages and Rename symbol (text based) */
+.modal.usages-dialog { width: min(720px, 94vw); gap: 8px; }
+.modal.usages-dialog.rename { width: min(820px, 94vw); }
+.usages-dialog h3 { margin: 0; }
+.usages-fields { display: flex; flex-direction: column; gap: 6px; }
+.usages-field { display: flex; align-items: center; gap: 8px; color: var(--dim); }
+.usages-field .palette-input { flex: 1; min-width: 0; }
+.usages-field code, .usages-dialog .hint code, .usages-report code { color: var(--fg-bright); font-family: ui-monospace, Menlo, monospace; }
+.usage-note { margin: 0; }
+.usage-summary { min-height: 1.2em; }
+.usages-skip { display: flex; align-items: flex-start; gap: 8px; color: var(--fg); font-size: 12px; cursor: pointer; }
+.usages-skip input { margin-top: 2px; }
+.usages-list { max-height: 46vh; }
+.usages-list li { border-radius: 0; }
+.usages-list li.usage-heading { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 6px 8px 2px; cursor: default; }
+.usage-where { flex: none; color: var(--fg-bright); font-size: 12px; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usages-list li .usage-line { padding-left: 0; }
+.rename-list li.rename-row { padding: 2px 8px 2px 22px; cursor: default; align-items: center; }
+.rename-list li.rename-row label { display: flex; flex: 1; min-width: 0; gap: 8px; align-items: baseline; cursor: pointer; }
+.rename-list li.rename-row.off { opacity: .5; }
+.rename-list li.rename-row.off label { cursor: default; }
+.rename-list li.rename-file { cursor: default; align-items: center; }
+.usage-tag { flex: none; font-size: 10px; padding: 0 5px; border: 1px solid rgb(var(--fg-rgb) / .25); color: var(--dim); border-radius: 0; }
+.usage-tag.usage-def { border-color: rgb(var(--yellow-rgb) / .6); color: var(--yellow); }
+.usage-tag.usage-unsaved { border-color: rgb(var(--red-rgb) / .6); color: var(--red); }
+.usages-actions { display: flex; align-items: center; gap: 8px; }
+.usages-actions .hint { flex: 1; font-size: 11px; }
+.usages-report { display: flex; flex-direction: column; gap: 8px; }
+.usages-report p { margin: 0; }
+.usage-skipped ul { margin: 4px 0 0; padding-left: 18px; font-size: 12px; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }

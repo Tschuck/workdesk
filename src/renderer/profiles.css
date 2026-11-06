@@ -1,0 +1,52 @@
+/* Profile selector under the WORKDESK title and Settings → Profiles. Items with an active state: square corners, thin yellow bar on the left. */
+.profile-selector { position: relative; margin: -2px 0 8px; }
+.profile-current { display: flex; align-items: center; gap: 8px; width: 100%; border: none; border-radius: 0; background: rgb(var(--fg-rgb) / .06); padding: 6px 8px; font-size: 12.5px; font-weight: 600; color: var(--fg-bright); text-align: left; cursor: pointer; }
+.profile-current:hover { background: rgb(var(--fg-rgb) / .1); }
+.profile-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.profile-dot[data-all] { background: conic-gradient(#4f9cf9, #5fbf7a, #e0b13a, #e05d6f, #c76fd6, #4f9cf9); }
+.profile-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-chevron { color: rgb(var(--fg-rgb) / .45); font-size: 10px; }
+.profile-badge { background: var(--yellow); color: #000; }
+.profile-menu { position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 0; list-style: none; background: var(--bg-dark); border: 1px solid var(--line); box-shadow: 0 6px 18px rgb(0 0 0 / .35); }
+.profile-menu li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 12.5px; cursor: pointer; border-radius: 0; }
+.profile-menu li:hover { background: rgb(var(--fg-rgb) / .08); }
+.profile-menu li.active { background: rgb(var(--fg-rgb) / .13); box-shadow: inset 2px 0 0 var(--yellow); }
+.profile-menu li.all { border-top: 1px solid var(--line); }
+
+.profiles-settings .profile-list, .profiles-settings .repo-list { list-style: none; padding: 0; margin: 8px 0; }
+.profiles-settings .profile-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); margin-bottom: 6px; border-radius: 0; }
+.profiles-settings .profile-item-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.profiles-settings .profile-item-main .chip { align-self: flex-start; }
+.profiles-settings .repo-list li { padding: 8px 10px; border: 1px solid var(--line); margin-bottom: 6px; font-size: 12px; border-radius: 0; }
+.profiles-settings .repo-list code { word-break: break-all; }
+.profiles-settings .repo-head { display: flex; align-items: center; gap: 8px; }
+.profiles-settings .repo-actions { margin-left: auto; display: flex; gap: 6px; }
+.form-modal .cred-row { display: flex; align-items: center; gap: 10px; padding: 2px 0; font-size: 12.5px; }
+.form-modal .cred-name { width: 70px; color: var(--fg); }
+.form-modal .cred-row .ok { color: #5fbf7a; }
+.form-modal .cred-row .none { color: var(--dim); }
+.form-modal input[type='color'] { width: 32px; height: 28px; padding: 0; border: 1px solid var(--line); background: none; border-radius: 0; flex: none; }
+.project-profile { margin-left: auto; }
+.skill-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+
+/* the Profiles in the navigation of the Settings */
+.settings-group-head { display: flex; align-items: center; justify-content: space-between; padding-right: 0; }
+.settings-nav button.settings-group-add { width: 20px; height: 20px; padding: 0; text-align: center; font-size: 15px; line-height: 1; color: rgb(var(--fg-rgb) / .6); }
+.settings-nav button.settings-profile { display: flex; align-items: center; gap: 8px; }
+.settings-profile-select { margin: 0 6px 4px; padding: 4px 6px; font-size: 12.5px; border-radius: 0; }
+
+/* the Profile in view is the centre of the left panel: a tinted block with the Profile's colour at its edge, larger than the app bar above it */
+.nav > .profile-selector { margin: 0 -8px 6px; }
+.profile-selector .profile-current { padding: 10px 12px; font-size: 14px; font-weight: 700; letter-spacing: .01em; background: color-mix(in srgb, var(--profile-color, var(--yellow)) 6%, transparent); }
+.profile-selector .profile-current:hover { background: color-mix(in srgb, var(--profile-color, var(--yellow)) 11%, transparent); }
+.profile-selector .profile-dot { width: 10px; height: 10px; }
+
+/* the page of the Profile in view */
+.profile-detail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.profile-detail-head input[type='color'] { width: 34px; height: 30px; padding: 0; border: 1px solid var(--line); background: none; }
+.profile-detail-name { flex: 1; min-width: 0; font-size: 18px; font-weight: 700; padding: 4px 8px; }
+.profile-detail-fields { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 16px 18px; margin: 18px 0; align-items: start; }
+.profile-detail-fields dt { color: rgb(var(--fg-rgb) / .55); padding-top: 5px; }
+.profile-detail-fields dd { margin: 0; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.profile-detail-fields select { min-width: 260px; }
+.profile-detail-danger { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); }

@@ -1,0 +1,36 @@
+/* Review mode: takes the place of the tabs of a WorkDesk. Square corners. */
+.review-mode { flex: 1; min-height: 0; min-width: 0; display: flex; background: var(--bg); }
+.review-mode .review-side { width: var(--files-width, 340px); }
+.review-mode .review-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.review-mode .review-head strong { font-size: 13px; color: var(--fg-bright); }
+.review-mode .review-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.review-mode .review-empty { margin: 24px; max-width: 420px; }
+.tabs-frame.reviewing > .tab-body { display: none; }
+
+
+.review-side .rv-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.review-side .rv-progress { margin-left: auto; font-size: 11px; color: var(--dim); }
+.review-side .rv-tick { margin: 0 4px 0 0; flex: none; }
+.review-side .file-leaf.current { background: rgb(var(--fg-rgb) / .13); box-shadow: inset 2px 0 0 var(--yellow); border-radius: 0; }
+.review-side .file-leaf.reviewed .file-label { color: var(--dim); text-decoration: line-through; text-decoration-color: rgb(var(--fg-rgb) / .3); }
+
+/* a WorkDesk that is not shown keeps its Review mode, but nothing of it may show (Monaco sets its own visibility) */
+.desk-view:not(.on) .review-mode { display: none; }
+
+/* the Comments list of the review */
+.rv-comments { display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+.rv-comments-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px; border-bottom: 1px solid var(--line); }
+.rv-comments-head > .hint { flex: 1 0 100%; }
+.rv-comments-head > .file-spacer { display: none; }
+.rv-comments-head button { white-space: nowrap; padding: 3px 12px; }
+.rv-comments > .hint, .rv-comments > .error-text { margin: 8px 10px; }
+.rv-comments-root h4 { margin: 10px 10px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: rgb(var(--fg-rgb) / .5); }
+.rv-comments ul { list-style: none; margin: 0; padding: 0; }
+.rv-comment { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-bottom: 1px solid var(--line); }
+.rv-comment-where { align-self: flex-start; max-width: 100%; text-align: left; padding: 0; border: none; background: none; color: var(--yellow); font: 12px ui-monospace, monospace; word-break: break-all; cursor: pointer; }
+.rv-comment-where:hover { text-decoration: underline; }
+.rv-comment-line { color: var(--fg-bright); }
+.rv-comment-text { white-space: pre-wrap; word-break: break-word; font-size: 12.5px; color: var(--fg); max-height: 240px; overflow: auto; }
+.rv-comment textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 12.5px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 6px; resize: vertical; }
+.rv-comment-buttons { display: flex; gap: 6px; }
+.rv-comment-buttons button { font-size: 11px; padding: 0 8px; }

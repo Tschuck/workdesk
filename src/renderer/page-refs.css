@@ -1,0 +1,19 @@
+/* pages attached to a WorkDesk or a Todo, and the "..." menu of a browser pane */
+.page-refs { list-style: none; margin: 0; padding: 0; }
+.page-ref { display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 8px; cursor: pointer; border-radius: 0; color: var(--fg); }
+.page-ref:hover { background: rgb(var(--fg-rgb) / .06); color: var(--fg-bright); }
+.page-ref-icon { display: flex; align-items: center; flex: none; width: 14px; height: 14px; color: var(--dim); }
+.page-ref-icon svg { width: 13px; height: 13px; }
+.page-ref-icon img { border-radius: 3px; object-fit: contain; }
+.page-ref-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-ref-host { flex: none; color: var(--dim); font-size: 11px; max-width: 30%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-ref .x { border: none; background: none; padding: 0 2px; opacity: 0; }
+.page-ref:hover .x { opacity: 1; }
+.page-refs-box { margin-bottom: 8px; }
+
+.browser-bar .page-menu-btn { font-weight: 700; letter-spacing: .05em; }
+.browser-bar .page-menu-btn.noted { color: var(--yellow); }
+.browser-bar .page-note { position: absolute; right: 8px; top: 100%; z-index: 5; margin-top: 2px; padding: 3px 8px; font-size: 11px; background: var(--bg-dark); border: 1px solid var(--line); color: var(--fg-bright); pointer-events: none; }
+
+/* the icon of a page in the list of panes under a tab */
+.tab-pane-item .pane-favicon { flex: none; border-radius: 2px; object-fit: contain; }

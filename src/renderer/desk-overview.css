@@ -1,0 +1,4 @@
+.desk-overview h4 { margin: 10px 0 2px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: rgb(var(--fg-rgb) / .45); }
+.desk-overview .work-items li.dim .title { color: var(--dim); }
+.desk-overview .work-item-text .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.dov-last { flex: none; min-width: 64px; text-align: right; font-size: 11px; white-space: nowrap; }

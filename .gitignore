@@ -1,0 +1,9 @@
+node_modules
+out
+dist
+*.log
+.DS_Store
+dist
+website/build
+website/.docusaurus
+.claude/worktrees/
