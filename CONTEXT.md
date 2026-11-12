@@ -30,7 +30,7 @@ A single timestamped event in a WorkDesk that needs the user: Claude needs input
 _Avoid_: notification, alert, status
 
 **WorkDesk order**:
-The order of the sidebar: sections by what a WorkDesk is doing — **Working** (in use), **Waiting** (a waiting Stage and no open Signal), **Planned** and **Postponed** — and inside a section the user's manual priority order. Parked WorkDesks stay in the section they belong to. A running WorkDesk keeps its place whatever its Signals; a parked one with an open Signal goes on top of its section. A Signal brings a waiting or postponed WorkDesk back into **Working**.
+The order of the sidebar: sections by what a WorkDesk is doing — **Working** (in use), **Waiting** (a waiting Stage and no open Signal), **Pull requests** (WorkDesks with pull requests of colleagues to review and none of your own, running or waiting alike), **Planned** and **Postponed** — and inside a section the user's manual priority order. Parked WorkDesks stay in the section they belong to. A running WorkDesk keeps its place whatever its Signals; a parked one with an open Signal goes on top of its section. A Signal brings a waiting or postponed WorkDesk back into **Working**.
 _Avoid_: ranking, sorting
 
 **WorkDesk presence**:

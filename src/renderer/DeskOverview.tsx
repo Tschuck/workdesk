@@ -13,6 +13,7 @@ import './desk-overview.css'
 const SECTIONS: { id: SidebarSection; label: string }[] = [
   { id: 'live', label: 'Working' },
   { id: 'waiting', label: 'Waiting' },
+  { id: 'reviews', label: 'Pull requests' },
   { id: 'closable', label: 'Can be cleared' },
   { id: 'planned', label: 'Planned' },
   { id: 'postponed', label: 'Postponed' }

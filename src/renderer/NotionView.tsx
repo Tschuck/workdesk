@@ -193,6 +193,7 @@ export function NotionView({ state, run, openDesk, openSettings }: Props) {
     </section>
     <aside className="side-pane">
       <WorkItemDetail
+        withPage
         item={openTicket ? asItem(openTicket) : undefined}
         state={state}
         run={run}

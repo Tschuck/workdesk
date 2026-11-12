@@ -57,6 +57,7 @@ From top to bottom:
 |---|---|
 | **Working** | WorkDesks in use, in your own order. A red number is an open Signal. |
 | **Waiting** | WorkDesks that wait for somebody else (Stage *Reviewed, waiting* or *Waiting*) and need nothing from you. |
+| **Pull requests** | WorkDesks for pull requests of colleagues (one to review, none of yours), running or waiting alike, so they do not crowd your own work. The title opens *PRs in WorkDesks*: every pull request of a WorkDesk in a list, its GitHub page beside it, and *WorkDesk →* to go there. |
 | **Can be cleared** | Everything they were about is done: pull requests merged or closed, Todos resolved. |
 | **Planned** | Not started yet. |
 | **Postponed** | Set aside until a time you chose. |

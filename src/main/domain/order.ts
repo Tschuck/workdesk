@@ -27,7 +27,24 @@ function groupOf(desk: WorkDesk): Group {
  */
 export const isWaiting = (desk: WorkDesk): boolean => desk.presence !== 'planned' && isWaitingStage(desk.stage) && !oldestOpenSignal(desk)
 
-export type SidebarSection = 'live' | 'waiting' | 'closable' | 'planned' | 'postponed'
+/**
+ * Is the WorkDesk one for pull requests of colleagues: it has one to review and none of yours? Those are listed apart (Pull requests),
+ * running or waiting, so they do not crowd your own work.
+ */
+export function isReviewDesk(desk: WorkDesk): boolean {
+  const prs = (desk.items ?? []).filter((i) => i.kind === 'pr')
+  if (prs.some((i) => isOwnPr(desk, i))) return false
+  return (desk.reviews?.length ?? 0) > 0 || prs.some((i) => i.role === 'review')
+}
+
+/**
+ * Is this pull request of the WorkDesk yours? Marked so, or (from before roles were kept) one without a role that it does not review:
+ * a review is always in `reviews` or marked `review`.
+ */
+export const isOwnPr = (desk: WorkDesk, item: { id: string; role?: 'review' | 'mine' }): boolean =>
+  item.role === 'mine' || (!item.role && !(desk.reviews ?? []).some((r) => `${r.owner}/${r.repo}#${r.number}` === item.id))
+
+export type SidebarSection = 'live' | 'waiting' | 'reviews' | 'closable' | 'planned' | 'postponed'
 
 /**
  * The part of the left panel a WorkDesk is listed in, by what it is doing. Parked is no section: a parked WorkDesk stays in the
@@ -38,6 +55,7 @@ export function sectionOf(desk: WorkDesk, now: number = Date.now(), closable?: R
   if (desk.presence === 'planned') return 'planned'
   // everything it was about is done: it can be cleared (a Signal does not change that)
   if (closable?.has(desk.id)) return 'closable'
+  if (isReviewDesk(desk)) return 'reviews'
   return isWaiting(desk) ? 'waiting' : 'live'
 }
 
@@ -57,10 +75,10 @@ export function orderSection(desks: readonly WorkDesk[]): OrderedDesk[] {
     .map((desk) => ({ desk, dimmed: desk.presence === 'planned' || desk.presence === 'parked' }))
 }
 
-/** The WorkDesks as the left panel lists them (and as ⌘1…⌘9 number them): the ones in use, the waiting, the planned, then the postponed. */
+/** The WorkDesks as the left panel lists them (and as ⌘1…⌘9 number them): the ones in use, the waiting, the pull requests, the planned, then the postponed. */
 export function sidebarOrder(desks: readonly WorkDesk[], closable?: ReadonlySet<string>): OrderedDesk[] {
   const now = Date.now()
-  return (['live', 'waiting', 'closable', 'planned', 'postponed'] as const).flatMap((s) => orderSection(desks.filter((d) => sectionOf(d, now, closable) === s)))
+  return (['live', 'waiting', 'reviews', 'closable', 'planned', 'postponed'] as const).flatMap((s) => orderSection(desks.filter((d) => sectionOf(d, now, closable) === s)))
 }
 
 export function orderDesks(desks: readonly WorkDesk[]): OrderedDesk[] {

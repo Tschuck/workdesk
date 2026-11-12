@@ -5,7 +5,10 @@ import type { Project } from '../main/projects/projects'
 import { claimedKeys, deskItemOf, itemKey, itemNotesId, KIND_LABEL, prItem, searchItems, startList, suggestName, ticketItem, todoItem, type WorkItem } from '../main/domain/work-items'
 import { PrChipsFor, ReadinessChip } from './PrStates'
 import { BranchDetail } from './BranchDetail'
-import { ReloadButton } from './Icons'
+import { IconButton, ReloadButton } from './Icons'
+import { BrowserPane } from './BrowserPane'
+import { compactPageCss } from './page-css'
+import { prPageUrl } from '../main/domain/desk-prs'
 import { NotesEditor } from './NotesEditor'
 import { ContextMenu, type MenuItem } from './ContextMenu'
 import { useOpenLink } from './OpenLink'
@@ -128,7 +131,7 @@ export function WorkItemList({ items, selected, onToggle, openKey, onOpen, selec
 }
 
 /** Tabs under a work item: each one is built when it is first shown and kept, so a web page is not reloaded when you come back. */
-function Tabs({ tabs }: { tabs: { id: string; label: string; content: React.ReactNode }[] }) {
+export function Tabs({ tabs, extra }: { tabs: { id: string; label: string; content: React.ReactNode }[]; extra?: React.ReactNode }) {
   const [active, setActive] = useState(tabs[0].id)
   const [seen, setSeen] = useState<string[]>([tabs[0].id])
   const current = tabs.some((t) => t.id === active) ? active : tabs[0].id
@@ -140,6 +143,7 @@ function Tabs({ tabs }: { tabs: { id: string; label: string; content: React.Reac
             {t.label}
           </button>
         ))}
+        {extra && <span className="tabs-extra">{extra}</span>}
       </div>
       <div className="tabs-box">
         {tabs.filter((t) => seen.includes(t.id) || t.id === current).map((t) => (
@@ -290,6 +294,8 @@ interface DetailProps {
   actions?: React.ReactNode
   /** the WorkDesk the details are shown in, if any */
   deskId?: string
+  /** a pull request or ticket with an address: its page (GitHub, Notion) in a first tab, the details in the second, the actions beside the tabs */
+  withPage?: boolean
 }
 
 /** The right pane: what the item is about. Todos show their notes; Pull requests and tickets what is known about them. */
@@ -312,22 +318,47 @@ function AssignToDesk({ item, state, run }: { item: WorkItem; state: AppState; r
   )
 }
 
-export function WorkItemDetail({ item, state, run, actions, deskId }: DetailProps) {
+export function WorkItemDetail({ item, state, run, actions, deskId, withPage }: DetailProps) {
   if (!item) return <p className="empty">Select an item to see what it is about.</p>
   if (item.kind === 'todo') {
     return <TodoDetail key={item.key} todoId={item.key.slice(5)} state={state} run={run} embedded onBack={() => undefined} />
   }
-  return (
+  const paged = withPage && !!item.url
+  const details = (
     <div className="work-item-detail">
       <section className="panel item-head">
         <h3>
           <KindIcon item={item} /> {item.ticketKey && <span className="ticket-key">{item.ticketKey}</span>} {item.title}
         </h3>
-        {actions && <div className="detail-actions">{actions}</div>}
+        {actions && !paged && <div className="detail-actions">{actions}</div>}
         {!deskId && <AssignToDesk item={item} state={state} run={run} />}
       </section>
       {item.kind === 'pr' ? <PrDetail item={item} state={state} run={run} deskId={deskId} /> : <TicketDetail item={item} />}
     </div>
+  )
+  if (!paged) return details
+  const url = item.kind === 'pr' ? prPageUrl(item.url!) : item.url!
+  return (
+    <Tabs
+      key={item.key}
+      extra={<PageActions url={item.url!} actions={actions} />}
+      tabs={[
+        { id: 'page', label: item.kind === 'pr' ? 'Pull request' : 'Ticket', content: <div className="item-page"><BrowserPane url={url} rememberKey={`item-page-${item.kind}`} onLocation={() => undefined} pageCss={compactPageCss(url)} /></div> },
+        { id: 'details', label: deskId ? 'In this WorkDesk' : 'Details', content: details }
+      ]}
+    />
+  )
+}
+
+/** Beside the tabs of an item's page: copy its link, open it as a browser Tab, and what can be done with the item here. */
+function PageActions({ url, actions }: { url: string; actions?: React.ReactNode }) {
+  const openLink = useOpenLink()
+  return (
+    <>
+      {actions}
+      <IconButton icon="link" title="Copy the link" onClick={() => void window.workdesk.writeClipboard(url)} />
+      <IconButton icon="globe" title="Open it as a browser Tab" onClick={() => openLink(url)} />
+    </>
   )
 }
 

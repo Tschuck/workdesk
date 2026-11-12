@@ -16,9 +16,11 @@ export interface SidebarPanels {
   planned: boolean
   postponed: boolean
   closable: boolean
+  /** WorkDesks for pull requests of colleagues */
+  reviews: boolean
 }
 
-export const OPEN_PANELS: SidebarPanels = { activity: true, claude: true, performance: true, desks: true, waiting: true, planned: true, postponed: false, closable: true }
+export const OPEN_PANELS: SidebarPanels = { activity: true, claude: true, performance: true, desks: true, waiting: true, planned: true, postponed: false, closable: true, reviews: true }
 
 export interface AppSettings {
   quit: QuitBehavior

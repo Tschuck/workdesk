@@ -210,6 +210,7 @@ export function GithubView({ state, run, openDesk, openSettings }: Props) {
     </section>
     <aside className="side-pane">
       <WorkItemDetail
+        withPage
         item={openPr ? asItem(openPr) : undefined}
         state={state}
         run={run}

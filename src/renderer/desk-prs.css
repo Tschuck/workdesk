@@ -1,0 +1,23 @@
+/* Pull requests in WorkDesks: the list on the left, the GitHub page of the one picked on the right */
+.desk-prs { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; flex: 1; min-width: 0; min-height: 0; }
+.desk-prs-list { overflow: auto; padding: 16px 12px; border-right: 1px solid var(--line); }
+.desk-prs-list h2 { margin: 0 0 12px; }
+/* one card per WorkDesk: its name and Stage on top, its pull requests below, one per line */
+.desk-prs-card { border: 1px solid var(--line); background: rgb(var(--fg-rgb) / .03); margin-bottom: 10px; }
+.desk-prs-card h3 { margin: 0; padding: 8px 10px; font-size: 12.5px; font-weight: 600; color: var(--fg-bright); display: flex; gap: 8px; align-items: center; min-width: 0; border-bottom: 1px solid var(--line); }
+.desk-prs-desk { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desk-prs-card .chip { flex: none; }
+.desk-prs-go { flex: none; border: none; background: none; padding: 0 4px; color: var(--dim); cursor: pointer; }
+.desk-prs-go:hover { color: var(--fg-bright); }
+.desk-prs-list ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.desk-prs-list li { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; cursor: pointer; border-left: 2px solid transparent; }
+.desk-prs-list li + li { border-top: 1px solid var(--line); }
+.desk-prs-list li:hover { background: rgb(var(--fg-rgb) / .05); }
+.desk-prs-list li.active { border-left-color: var(--yellow); background: rgb(var(--fg-rgb) / .07); }
+.desk-pr-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desk-pr-meta { font-size: 11px; color: var(--dim); display: flex; gap: 6px; align-items: center; overflow: hidden; white-space: nowrap; }
+.desk-prs-detail { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.desk-prs-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.desk-pr-head { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.desk-pr-head strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desk-prs-detail > .browser { flex: 1; min-height: 0; }

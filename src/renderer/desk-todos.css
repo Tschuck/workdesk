@@ -1,6 +1,12 @@
 /* Todos in a desk, the desk note, "What next?" and the capture dialog */
 .desk-todos { padding: 8px 12px; border-bottom: 1px solid rgb(var(--fg-rgb) / .12); display: flex; flex-direction: column; gap: 6px; }
 .desk-todos-head { display: flex; align-items: center; gap: 8px; }
+.desk-todos-fold { display: flex; align-items: center; gap: 8px; border: none; background: none; padding: 0; font: inherit; font-weight: 600; color: inherit; cursor: pointer; }
+.desk-todos-fold::after { content: ''; width: 5px; height: 5px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-1px) rotate(45deg); opacity: .5; }
+.desk-todos-head.folded .desk-todos-fold::after { transform: rotate(-45deg); }
+.desk-todos-fold:hover::after { opacity: 1; }
+/* on the Details page the Todos are a panel of the left column */
+.desk-todos-panel .desk-todos { padding: 0; border-bottom: none; }
 .desk-todos-head .add-button { margin-left: auto; width: 22px; height: 22px; font-size: 15px; }
 .desk-todos-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .desk-todos-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 2px 4px; border-radius: 4px; }

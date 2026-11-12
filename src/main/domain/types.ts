@@ -94,7 +94,7 @@ export interface DeskItem {
   url?: string
   subtitle?: string
   ticketKey?: string
-  /** Pull Requests: `review` when it is somebody else's and you review it, `mine` when it is yours; none: taken as one to review */
+  /** Pull Requests: `review` when it is somebody else's and you review it, `mine` when it is yours; none: yours, unless it is in `reviews` */
   role?: 'review' | 'mine'
   /** a pull request of yours: where it stood when it was last looked at, to tell what is new (reviews, comments) */
   seen?: { approvals: number; changesRequested: number; commentCount: number }

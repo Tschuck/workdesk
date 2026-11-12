@@ -125,6 +125,25 @@ export function DetailsPane({ desk, state, run, onClear, onCombine, prs, onRefre
   }, [desk.branches, items.map((i) => i.key).join('|')])
 
 
+  // what a work item is about, with the way to take it out of this WorkDesk
+  const itemDetail = current && (
+    <WorkItemDetail
+      item={current}
+      state={state}
+      run={run}
+      deskId={desk.id}
+      withPage
+      actions={
+        <button
+          title="Take it out of this WorkDesk"
+          onClick={() => void run(() => (current.kind === 'todo' ? api.deskRemoveTodo(current.key.slice(5)) : api.deskRemoveItem(desk.id, current.kind as 'pr' | 'ticket', current.key.slice(current.kind.length + 1))))}
+        >
+          Remove from WorkDesk
+        </button>
+      }
+    />
+  )
+
   return (
     <div className="details desk-home">
       <header className="desk-head">
@@ -163,32 +182,28 @@ export function DetailsPane({ desk, state, run, onClear, onCombine, prs, onRefre
         </div>
       )}
 
-      {!finished && !planned && !parked && !why && (
+      {(finished || !why) && !planned && (
         <div className="restack">
           <span>Everything in this WorkDesk is done: Todos resolved, pull requests merged or closed, no open pull request on its branches. Clear it to keep the sidebar tidy.</span>
+          {!parked && <IconButton icon="pause" title="Park: shut down its terminals (and what runs in them) and its editor window to free memory; tabs, notes, branches and Claude sessions are kept" onClick={() => void run(() => api.parkDesk(desk.id))} />}
           <IconButton icon="trash" danger title="Clear WorkDesk: notes and Claude sessions are archived, its folders are removed; Branches and Todos are kept" onClick={onClear} />
+          <ReloadButton title="Reload the pull requests of its branches and the state of its work items" busy={reloading} onClick={() => void reload()} />
         </div>
       )}
 
-      {!finished && !planned && !parked && isWaitingStage(desk.stage) && (
+      {!finished && why && !planned && !parked && isWaitingStage(desk.stage) && (
         <div className="restack">
           <span>Waiting for somebody else. Park this WorkDesk to free what its terminals and editor use; it comes back to Work when there is news.</span>
           <IconButton icon="pause" title="Park: shut down its terminals (and what runs in them) and its editor window to free memory; tabs, notes, branches and Claude sessions are kept" onClick={() => void run(() => api.parkDesk(desk.id))} />
         </div>
       )}
 
-      {finished && (
-        <div className="restack">
-          <span>{reviews.length > 1 ? 'The pull requests are' : 'The pull request was'} {reviews.every((r) => r.snapshot!.state === reviews[0].snapshot!.state) ? reviews[0].snapshot!.state : 'merged or closed'}. Clear this WorkDesk to keep the sidebar tidy: notes are archived, and branches and Todos are kept.</span>
-          <IconButton icon="trash" danger title="Clear WorkDesk: notes and Claude sessions are archived, its folders are removed; Branches and Todos are kept" onClick={onClear} />
-        </div>
-      )}
-
-      <DeskTodos desk={desk} state={state} run={run} onOpen={(id) => setSel({ kind: 'item', key: `todo:${id}` })} />
-
       <div className="split-page details-split">
         <div className="split-main">
           <TimeSpent deskId={desk.id} />
+          <section className="panel desk-todos-panel">
+            <DeskTodos desk={desk} state={state} run={run} onOpen={(id) => setSel({ kind: 'item', key: `todo:${id}` })} />
+          </section>
           <section className="panel work-items-panel">
             <h3>
               Work items ({listed.length})
@@ -255,23 +270,8 @@ export function DetailsPane({ desk, state, run, onClear, onCombine, prs, onRefre
               onClose={() => setSel(undefined)}
               inThisDesk={desk.id}
             />
-          ) : current ? (
-            <WorkItemDetail
-              item={current}
-              state={state}
-              run={run}
-              deskId={desk.id}
-              actions={
-                <button
-                  title="Take it out of this WorkDesk"
-                  onClick={() => void run(() => (current.kind === 'todo' ? api.deskRemoveTodo(current.key.slice(5)) : api.deskRemoveItem(desk.id, current.kind as 'pr' | 'ticket', current.key.slice(current.kind.length + 1))))}
-                >
-                  Remove from WorkDesk
-                </button>
-              }
-            />
           ) : (
-            <p className="empty">Click a work item or a branch to see its details here.</p>
+            itemDetail || <p className="empty">Click a work item or a branch to see its details here.</p>
           )}
         </aside>
       </div>

@@ -21,6 +21,8 @@ interface Props {
   rememberKey?: string
   /** where the page is now, with its title and icon (saved by the caller) */
   onLocation: (location: { url: string; title?: string; favicon?: string }) => void
+  /** CSS put into every page once it has loaded (a Notion page shown beside its ticket loses its sidebar and wide margins) */
+  pageCss?: string
 }
 
 interface WebviewElement extends HTMLElement {
@@ -32,6 +34,7 @@ interface WebviewElement extends HTMLElement {
   getURL(): string
   getTitle(): string
   getWebContentsId(): number
+  insertCSS(css: string): Promise<string>
 }
 
 /** A web page in a Pane. It runs in the session of its domain (see Settings → Browser sessions); the others share one. */
@@ -109,7 +112,7 @@ function SessionChoice({ url, options, onPick, onCancel }: { url: string; option
   )
 }
 
-function Page({ url, paneId, rememberKey, onLocation, config, initialPartition }: Props & { config: BrowserSessionsConfig; initialPartition?: string }) {
+function Page({ url, paneId, rememberKey, onLocation, config, initialPartition, pageCss }: Props & { config: BrowserSessionsConfig; initialPartition?: string }) {
   const view = useRef<WebviewElement>(null)
   const blank = url === 'about:blank'
   const [address, setAddress] = useState(blank ? '' : url)
@@ -292,6 +295,9 @@ function Page({ url, paneId, rememberKey, onLocation, config, initialPartition }
     }
     el.addEventListener('dom-ready', onReady)
     el.addEventListener('focus', onReady)
+    // once per document: a page that loads again gets it again
+    const onStyle = () => void (pageCss && el.insertCSS(pageCss).catch(() => undefined))
+    el.addEventListener('dom-ready', onStyle)
     el.addEventListener('did-start-loading', onStart)
     el.addEventListener('did-stop-loading', onStop)
     el.addEventListener('did-fail-load', onFail)
@@ -305,6 +311,7 @@ function Page({ url, paneId, rememberKey, onLocation, config, initialPartition }
       el.removeEventListener('did-navigate', onNavigate)
       el.removeEventListener('did-navigate-in-page', onInPage)
       el.removeEventListener('dom-ready', onReady)
+      el.removeEventListener('dom-ready', onStyle)
       el.removeEventListener('focus', onReady)
       el.removeEventListener('did-start-loading', onStart)
       el.removeEventListener('did-stop-loading', onStop)

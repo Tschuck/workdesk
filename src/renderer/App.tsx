@@ -11,6 +11,7 @@ import { openSignals } from '../main/domain/signal'
 import { missingRequired, type ToolCheck } from '../main/tools-shared'
 import { Dashboard } from './Dashboard'
 import { TimeView } from './TimeView'
+import { DeskPrsView } from './DeskPrsView'
 import { OrchestratorView } from './OrchestratorView'
 import { CombineDesks } from './CombineDesks'
 import { WaitingModal } from './WaitingModal'
@@ -67,7 +68,7 @@ import { ProfileSelector } from './ProfileSelector'
 import { defaultConfig, filterState, signalCounts, type ProfilesConfig } from '../main/domain/profiles'
 import './app.css'
 
-type Page = { kind: 'dashboard' } | { kind: 'work'; tab: WorkTab; focus?: { project: string; branch: string } } | { kind: 'performance' } | { kind: 'settings'; section: SettingsSection } | { kind: 'browser' } | { kind: 'files' } | { kind: 'time' } | { kind: 'orchestrator' } | { kind: 'desk'; id: string }
+type Page = { kind: 'dashboard' } | { kind: 'desk-prs' } | { kind: 'work'; tab: WorkTab; focus?: { project: string; branch: string } } | { kind: 'performance' } | { kind: 'settings'; section: SettingsSection } | { kind: 'browser' } | { kind: 'files' } | { kind: 'time' } | { kind: 'orchestrator' } | { kind: 'desk'; id: string }
 /** A Todo is opened from a page and goes back to it */
 type Selection = Page | { kind: 'todo'; id: string; back: Page }
 
@@ -313,6 +314,7 @@ export function App() {
   const WORK_TABS: { tab: WorkTab; label: string }[] = [{ tab: 'todos', label: 'Todos' }, { tab: 'prs', label: 'Pull requests' }, { tab: 'notion', label: 'Notion tickets' }, { tab: 'branches', label: 'Branches' }, { tab: 'archive', label: 'Archive' }]
   const appCommands: Command[] = [
     { id: 'go-dashboard', title: 'Go to Dashboard', group: 'Go to', keywords: 'home overview', run: () => setSelection({ kind: 'dashboard' }) },
+    { id: 'go-desk-prs', title: 'Go to Pull requests in WorkDesks', group: 'Go to', keywords: 'pr review github', run: () => setSelection({ kind: 'desk-prs' }) },
     ...WORK_TABS.map((w): Command => ({ id: `go-work-${w.tab}`, title: `Go to Work items: ${w.label}`, group: 'Go to', run: () => (setWorkTab(w.tab), setSelection({ kind: 'work', tab: w.tab })) })),
     { id: 'go-next', title: 'Go to What next? (on the Dashboard)', group: 'Go to', keywords: 'todos signals due postponed overview', run: () => setSelection({ kind: 'dashboard' }) },
     ...templates.map((t): Command => ({
@@ -519,10 +521,11 @@ export function App() {
           Orchestrator
         </button>
         {(() => {
-          const shown = panels ?? { desks: true, waiting: true, closable: true, planned: true, postponed: true }
+          const shown = panels ?? { desks: true, waiting: true, reviews: true, closable: true, planned: true, postponed: true }
           const now = Date.now()
           const postponed = state.desks.filter((d) => sectionOf(d, now, closable) === 'postponed')
           const waiting = state.desks.filter((d) => sectionOf(d, now, closable) === 'waiting')
+          const reviewing = state.desks.filter((d) => sectionOf(d, now, closable) === 'reviews')
           const closing = state.desks.filter((d) => sectionOf(d, now, closable) === 'closable')
           const planned = state.desks.filter((d) => sectionOf(d, now, closable) === 'planned')
           const live = state.desks.filter((d) => sectionOf(d, now, closable) === 'live')
@@ -591,6 +594,20 @@ export function App() {
                   {list(waiting)}
                 </SideSection>
               )}
+              {reviewing.length > 0 && (
+                <SideSection
+                  title={`Pull requests (${reviewing.length})`}
+                  className="desks-section"
+                  open={shown.reviews}
+                  onToggle={togglePanel('reviews')}
+                >
+                  <button className={'section-entry' + (selection.kind === 'desk-prs' ? ' active' : '')} title="The pull requests in your WorkDesks, with their GitHub page" onClick={() => setSelection({ kind: 'desk-prs' })}>
+                    All pull requests in WorkDesks
+                  </button>
+                  {sectionRow(reviewing)}
+                  {list(reviewing)}
+                </SideSection>
+              )}
               {closing.length > 0 && (
                 <SideSection title={`Can be cleared (${closing.length})`} className="desks-section" open={shown.closable} onToggle={togglePanel('closable')}>
                   {sectionRow(closing)}
@@ -655,7 +672,7 @@ export function App() {
         />
       )}
       {error && <div className="error toast" title="Click to dismiss" onClick={() => setError(undefined)}>{error}</div>}
-      <main className={selection.kind === 'orchestrator' ? 'desk-main' : undefined}>
+      <main className={selection.kind === 'orchestrator' || selection.kind === 'desk-prs' ? 'desk-main' : undefined}>
         {missing.length > 0 && (
           <div className="error">
             Missing tools: {missing.map((m) => <div key={m.name}><strong>{m.name}</strong>: {m.hint}</div>)}
@@ -714,6 +731,7 @@ export function App() {
         )}
         {jwtOnFiles && <JwtModal deskId={GLOBAL_DESK} onClose={() => setJwtOnFiles(false)} onOpen={(p) => (setJwtOnFiles(false), fileTabs.open(p), setFilesOpened(true), setSelection({ kind: 'files' }))} />}
         {noteOnFiles && <NewNote deskId={GLOBAL_DESK} onClose={() => setNoteOnFiles(false)} onCreated={(p) => (setNoteOnFiles(false), fileTabs.open(p), setFilesOpened(true), setSelection({ kind: 'files' }))} />}
+        {selection.kind === 'desk-prs' && <DeskPrsView desks={state.desks} openDesk={selectDesk} />}
         {selection.kind === 'time' && <TimeView desks={state.desks} openDesk={selectDesk} scoped={pcfg.active !== 'all' && pcfg.profiles.length > 1} />}
         {selection.kind === 'orchestrator' && <OrchestratorView state={state} openDesk={selectDesk} openTab={openTabInDesk} />}
         {selection.kind === 'settings' && <SettingsView section={selection.section} onSection={(section) => setSelection({ kind: 'settings', section })} />}

@@ -18,6 +18,15 @@ interface Props {
   onOpen?: (id: string) => void
 }
 
+const FOLD_KEY = 'workdesk.deskTodosFolded'
+const wasFolded = (): boolean => {
+  try {
+    return localStorage.getItem(FOLD_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 /** The checklist of a WorkDesk, for its header: add, tick, reorder (drag, or the arrows), due time with reminder and snooze, delete. */
 export function DeskTodos({ desk, state, run, onOpen }: Props) {
   const api = window.workdesk
@@ -31,6 +40,17 @@ export function DeskTodos({ desk, state, run, onOpen }: Props) {
   const [menu, setMenu] = useState<{ x: number; y: number; todo: Todo; index: number }>()
   const sort = useSortable((id, ref, after) => void run(() => api.placeDeskTodo(desk.id, id, ref, after)), undefined, () => true)
   const now = Date.now()
+  // folded, only the head with its count shows; kept for every WorkDesk
+  const [folded, setFolded] = useState(wasFolded)
+  const fold = () =>
+    setFolded((f) => {
+      try {
+        localStorage.setItem(FOLD_KEY, f ? '0' : '1')
+      } catch {
+        /* not kept */
+      }
+      return !f
+    })
 
   const add = () => {
     const t = title.trim()
@@ -61,12 +81,14 @@ export function DeskTodos({ desk, state, run, onOpen }: Props) {
           ]}
         />
       )}
-      <div className="desk-todos-head">
-        <strong>Todos</strong>
+      <div className={'desk-todos-head' + (folded ? ' folded' : '')}>
+        <button className="desk-todos-fold" aria-expanded={!folded} title={folded ? 'Show the Todos' : 'Fold the Todos'} onClick={fold}>
+          Todos
+        </button>
         {total > 0 && <span className="chip small" title="Resolved of all Todos in this WorkDesk">{done}/{total}</span>}
         <AddButton label="Add a Todo to this WorkDesk" onClick={() => setAdding(true)} />
       </div>
-      {list.length > 0 && (
+      {!folded && list.length > 0 && (
         <ul className="desk-todos-list">
           {list.map((t, i) => (
             <li key={t.id} className={[t.resolved ? 'done' : '', sort.classes(t.id), isOverdue(t, now) ? 'overdue' : ''].join(' ')} {...sort.props(t.id)} onContextMenu={(e) => (e.preventDefault(), setMenu({ x: e.clientX, y: e.clientY, todo: t, index: i }))}>

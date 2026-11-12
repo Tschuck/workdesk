@@ -142,11 +142,11 @@ describe('app settings', () => {
     const file = join(dir, 'settings.json')
     const s = new Settings(file)
     await s.load()
-    expect(s.panels).toEqual({ activity: true, claude: true, performance: true, desks: true, waiting: true, planned: true, postponed: false, closable: true })
+    expect(s.panels).toEqual({ activity: true, claude: true, performance: true, desks: true, waiting: true, planned: true, postponed: false, closable: true, reviews: true })
     await s.setPanels({ claude: false, performance: false, postponed: true, activity: 'x' as never })
     const again = new Settings(file)
     await again.load()
-    expect(again.panels).toEqual({ activity: true, claude: false, performance: false, desks: true, waiting: true, planned: true, postponed: true, closable: true })
+    expect(again.panels).toEqual({ activity: true, claude: false, performance: false, desks: true, waiting: true, planned: true, postponed: true, closable: true, reviews: true })
   })
 })
 
