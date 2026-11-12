@@ -63,6 +63,8 @@ export interface WatchedPrState {
   snapshot: PrSnapshot
   /** the Pull Request is the user's own (they opened it); unknown when GitHub did not say */
   mine?: boolean
+  /** the login of who opened it */
+  author?: string
 }
 
 /** What the list of a branch's Pull Requests shows: state, checks, reviews, who is asked. */
@@ -215,6 +217,7 @@ export class GithubApi {
         name: i.title,
         url: i.html_url,
         subtitle: `${owner}/${repo} · ${i.user?.login ?? '?'}`,
+        ...(i.user?.login ? { author: i.user.login } : {}),
         dependencyUpdate: isDepUpdate({ title: i.title }),
         draft: !!i.draft
       }
@@ -263,7 +266,7 @@ export class GithubApi {
       const data = (await this.graphql(`query { ${parts.join('\n')} } fragment W on PullRequest { ${WATCH_FIELDS} }`)) as Obj
       chunk.forEach((id, k) => {
         const node = data[`a${k}`]?.pullRequest
-        if (node) out.set(id, { state: toOpenPr(node, me, now).state, snapshot: toSnapshot(node, me), ...(node.author?.login ? { mine: node.author.login === me } : {}) })
+        if (node) out.set(id, { state: toOpenPr(node, me, now).state, snapshot: toSnapshot(node, me), ...(node.author?.login ? { mine: node.author.login === me, author: node.author.login } : {}) })
       })
     }
     return out

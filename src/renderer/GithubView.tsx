@@ -66,7 +66,7 @@ export function GithubView({ state, run, openDesk, openSettings }: Props) {
   )
 
   /** straight to the start panel: a pull request is not made a Todo */
-  const startReview = (pr: PrItem) => setStart([prItem({ id: pr.id, title: pr.title, url: pr.url, subtitle: `${pr.owner}/${pr.repo} · ${pr.author}` })])
+  const startReview = (pr: PrItem) => setStart([prItem({ id: pr.id, title: pr.title, url: pr.url, subtitle: `${pr.owner}/${pr.repo} · ${pr.author}`, author: pr.author })])
 
   useEffect(() => void api.githubStatus().then((a) => setConnected(a.kind !== 'none'), () => setConnected(false)), [api])
   useEffect(() => void load('none'), [load])
@@ -84,7 +84,7 @@ export function GithubView({ state, run, openDesk, openSettings }: Props) {
   const shownByRepo = (prs?.repos ?? []).map((r) => ({ r, shown: filterPrs(r.items, filter, statusOf) }))
   const act = (p: Promise<PrsState>) => p.then(setPrs, (e: Error) => setError(clean(e)))
 
-  const asItem = (pr: PrItem) => prItem({ id: pr.id, title: pr.title, url: pr.url, subtitle: `${pr.owner}/${pr.repo} · ${pr.author}` })
+  const asItem = (pr: PrItem) => prItem({ id: pr.id, title: pr.title, url: pr.url, subtitle: `${pr.owner}/${pr.repo} · ${pr.author}`, author: pr.author })
   const openPr = (prs?.repos ?? []).flatMap((r) => r.items).find((p) => p.id === openId)
 
   return (

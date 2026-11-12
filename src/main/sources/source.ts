@@ -16,6 +16,8 @@ export interface Candidate {
   hint?: string
   /** Pull requests: the branch they come from */
   branch?: string
+  /** Pull requests: the login of who opened it */
+  author?: string
 }
 
 /** A system the tool reads work items from (GitHub Pull Requests, a Notion database, …). */

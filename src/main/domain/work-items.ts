@@ -21,6 +21,8 @@ export interface WorkItem {
   deskId?: string
   /** Pull requests only */
   role?: PrRole
+  /** Pull requests: who opened it */
+  author?: string
 }
 
 export const GITHUB_PRS = 'github-prs'
@@ -44,7 +46,7 @@ export function todoItem(t: Todo, deskName?: string): WorkItem {
 }
 
 export function prItem(c: Candidate, role: PrRole = 'review', hint?: string): WorkItem {
-  return { key: itemKey('pr', c.id), kind: 'pr', title: c.name ?? c.title, subtitle: c.subtitle, url: c.url, role, hint: hint ?? (role === 'review' ? 'review requested' : 'needs work') }
+  return { key: itemKey('pr', c.id), kind: 'pr', title: c.name ?? c.title, subtitle: c.subtitle, url: c.url, role, hint: hint ?? (role === 'review' ? 'review requested' : 'needs work'), ...(c.author ? { author: c.author } : {}) }
 }
 
 export function ticketItem(c: Candidate): WorkItem {
@@ -58,11 +60,11 @@ export const legacyKind = (t: Pick<Todo, 'source'>): 'pr' | 'ticket' | undefined
 /** What a Pull Request or ticket becomes inside a WorkDesk. */
 export function deskItemOf(i: WorkItem): DeskItem | undefined {
   if (i.kind !== 'pr' && i.kind !== 'ticket') return undefined
-  return { kind: i.kind, id: i.key.slice(i.kind.length + 1), title: i.title, url: i.url, subtitle: i.subtitle, ticketKey: i.ticketKey, ...(i.kind === 'pr' && i.role ? { role: i.role } : {}) }
+  return { kind: i.kind, id: i.key.slice(i.kind.length + 1), title: i.title, url: i.url, subtitle: i.subtitle, ticketKey: i.ticketKey, ...(i.kind === 'pr' && i.role ? { role: i.role } : {}), ...(i.kind === 'pr' && i.author ? { author: i.author } : {}) }
 }
 
 export function itemOfDesk(d: DeskItem): WorkItem {
-  return { key: itemKey(d.kind, d.id), kind: d.kind, title: d.title, url: d.url, subtitle: d.subtitle, ticketKey: d.ticketKey, ...(d.role ? { role: d.role } : {}) }
+  return { key: itemKey(d.kind, d.id), kind: d.kind, title: d.title, url: d.url, subtitle: d.subtitle, ticketKey: d.ticketKey, ...(d.role ? { role: d.role } : {}), ...(d.author ? { author: d.author } : {}) }
 }
 
 /** Keys of the Pull Requests and tickets that a WorkDesk has already. */

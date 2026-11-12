@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { byDesk, parsePrRef, prPageUrl, prsInDesks } from './desk-prs'
-import { isReviewDesk, sectionOf, sidebarOrder } from './order'
+import { isReviewDesk, prAuthors, sectionOf, sidebarOrder } from './order'
 import type { WorkDesk } from './types'
 
 const desk = (id: string, over: Partial<WorkDesk> = {}): WorkDesk => ({
@@ -41,6 +41,12 @@ describe('the Pull requests section', () => {
     expect(sectionOf(desk('d', { items, postponedUntil: Date.now() + 60_000 }))).toBe('postponed')
     expect(sectionOf(desk('e', { items }), Date.now(), new Set(['e']))).toBe('closable')
     expect(sectionOf(desk('mine', { stage: 'waiting' }))).toBe('waiting')
+  })
+
+  it('names who opened the pull requests that are not yours, each once', () => {
+    const items = [{ ...pr('a/b#1', 'review'), author: 'alice' }, { ...pr('a/b#2', 'review'), author: 'alice' }, { ...pr('a/b#4', 'review'), author: 'bob' }, { ...pr('a/b#3', 'mine'), author: 'me' }, pr('a/b#5', 'review')]
+    expect(prAuthors(desk('r', { items }))).toEqual(['alice', 'bob'])
+    expect(prAuthors(desk('own', { items: [{ ...pr('a/b#6'), author: 'me' }] }))).toEqual([])
   })
 
   it('comes after your own work in the order of the left panel', () => {

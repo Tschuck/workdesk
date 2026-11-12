@@ -61,7 +61,7 @@ describe('GitHub API', () => {
   })
 
   it('lists review requests as Candidates', async () => {
-    expect(await api.reviewRequested()).toEqual([{ id: 'o/r#7', title: 'Fix', url: 'u', subtitle: 'o/r · dev', name: 'Fix', dependencyUpdate: false, draft: false }])
+    expect(await api.reviewRequested()).toEqual([{ id: 'o/r#7', title: 'Fix', url: 'u', subtitle: 'o/r · dev', author: 'dev', name: 'Fix', dependencyUpdate: false, draft: false }])
   })
 
   it('builds a snapshot from reviews, comments and checks', async () => {

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { freezeOrder } from '../main/domain/navigation'
-import { orderSection } from '../main/domain/order'
+import { orderSection, prAuthors } from '../main/domain/order'
 import { isPostponed, untilLabel } from '../main/domain/postpone'
 import { openSignals } from '../main/domain/signal'
 import { stageLabel } from '../main/domain/stage'
@@ -116,6 +116,7 @@ export function Sidebar({ desks, numbering, pins, onOpenPinned, activeId, onSele
             <div className="stage">
               {gone ? <><Spinner /> Deleting…</> : desk.presence === 'planned' ? 'Planned' : stageLabel(desk.stage) + (desk.presence === 'parked' ? ' · parked' : '')}
               {!gone && isPostponed(desk) && ` · back ${untilLabel(desk.postponedUntil!)}`}
+              {!gone && prAuthors(desk).map((a) => <span key={a} className="chip small pr-author" title={`Pull request by ${a}`}>{a}</span>)}
             </div>
             {!gone && desk.id !== activeId && desk.branches.length > 0 && (
               // inactive WorkDesks stay compact: the whole tree is shown for the active one only

@@ -64,7 +64,7 @@ export async function trackOwnPrs(
 /**
  * The pull requests a WorkDesk has as work items that are somebody else's are to be reviewed: they get the `review` role (older ones were
  * taken as your own and made the WorkDesk wait), and the WorkDesk reviews them like one started from a pull request, so its Stage follows
- * the review (To review, Reviewed, waiting, Re-review).
+ * the review (To review, Reviewed, waiting, Re-review). Who opened a pull request is kept with it, for one connected before that was.
  */
 async function sortOutPrs(service: WorkDeskService, deskId: string, read: ReadonlyMap<string, WatchedPrState>): Promise<void> {
   const desk = service.getState().desks.find((d) => d.id === deskId)
@@ -73,10 +73,15 @@ async function sortOutPrs(service: WorkDeskService, deskId: string, read: Readon
   const toTell = theirs.filter((i) => !i.role)
   const covered = new Set((desk.reviews ?? []).map((r) => `${r.owner}/${r.repo}#${r.number}`))
   const toReview = theirs.filter((i) => !covered.has(i.id) && read.get(i.id)?.snapshot)
-  if (toTell.length === 0 && toReview.length === 0) return
+  const toName = (desk.items ?? []).filter((i) => i.kind === 'pr' && !i.author && read.get(i.id)?.author)
+  if (toTell.length === 0 && toReview.length === 0 && toName.length === 0) return
   await service.updateDesk(deskId, (d) => {
     const tell = new Set(toTell.map((i) => i.id))
-    const items = (d.items ?? []).map((i) => (i.kind === 'pr' && tell.has(i.id) ? { ...i, role: 'review' as const } : i))
+    const items = (d.items ?? []).map((i) => {
+      if (i.kind !== 'pr') return i
+      const author = i.author ?? read.get(i.id)?.author
+      return { ...i, ...(tell.has(i.id) ? { role: 'review' as const } : {}), ...(author ? { author } : {}) }
+    })
     const reviews: ReviewInfo[] = [
       ...(d.reviews ?? []),
       ...toReview.map((i) => {

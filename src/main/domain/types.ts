@@ -96,6 +96,8 @@ export interface DeskItem {
   ticketKey?: string
   /** Pull Requests: `review` when it is somebody else's and you review it, `mine` when it is yours; none: yours, unless it is in `reviews` */
   role?: 'review' | 'mine'
+  /** Pull Requests: the GitHub login of who opened it, when known (filled when it is connected, or by the watch of the pull requests) */
+  author?: string
   /** a pull request of yours: where it stood when it was last looked at, to tell what is new (reviews, comments) */
   seen?: { approvals: number; changesRequested: number; commentCount: number }
 }

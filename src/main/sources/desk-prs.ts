@@ -70,7 +70,7 @@ export class DeskPrsService {
         // somebody else's Pull Request is one to review, not a work item of your own that makes the WorkDesk wait
         const role = p.author && p.author.toLowerCase() !== me.toLowerCase() ? ('review' as const) : undefined
         try {
-          await this.d.service.addDeskItem(deskId, { kind: 'pr', id, title: p.title, url: p.url, subtitle: b.repo, ...(role ? { role } : {}) })
+          await this.d.service.addDeskItem(deskId, { kind: 'pr', id, title: p.title, url: p.url, subtitle: b.repo, ...(role ? { role } : {}), ...(p.author ? { author: p.author } : {}) })
         } catch {
           // already in a WorkDesk, or not allowed there: nothing to do (an older one without a role is told whose it is by the watch of the pull requests)
         }

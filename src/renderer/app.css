@@ -608,6 +608,7 @@ main:has(> .settings) { padding-left: 10px; }
 .facts dd { margin: 0; }
 .desk.planned { opacity: .7; }
 .desk.planned .stage { font-style: italic; }
+.desk .stage .pr-author { margin-left: 6px; font-style: normal; font-weight: 500; }
 .ticket-body { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .ticket-body p { margin: 4px 0; white-space: pre-wrap; }
 .pr-title.open { color: var(--fg-bright); font-weight: 600; }

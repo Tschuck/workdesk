@@ -44,6 +44,10 @@ export function isReviewDesk(desk: WorkDesk): boolean {
 export const isOwnPr = (desk: WorkDesk, item: { id: string; role?: 'review' | 'mine' }): boolean =>
   item.role === 'mine' || (!item.role && !(desk.reviews ?? []).some((r) => `${r.owner}/${r.repo}#${r.number}` === item.id))
 
+/** Who opened the pull requests of a WorkDesk that are not yours, each once, for the left panel. */
+export const prAuthors = (desk: WorkDesk): string[] =>
+  [...new Set((desk.items ?? []).flatMap((i) => (i.kind === 'pr' && i.author && !isOwnPr(desk, i) ? [i.author] : [])))]
+
 export type SidebarSection = 'live' | 'waiting' | 'reviews' | 'closable' | 'planned' | 'postponed'
 
 /**
