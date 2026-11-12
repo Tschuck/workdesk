@@ -3,7 +3,7 @@ import { ScopeSwitch } from './ScopeSwitch'
 import { scopedRoots, useScope } from './scope'
 import type { FileRoot, SearchQuery } from '../main/files'
 import { clipboardTerm, definitionPattern, definitionRank } from './definition'
-import { filterFiles } from './file-buffers'
+import { filterFiles, splitLineRef } from './file-buffers'
 import { FileIcon } from './FileIcon'
 import { highlight } from './FilePane'
 
@@ -128,11 +128,13 @@ export function FileFinder({ deskId, mode, onPick, onCancel }: { deskId: string;
     }
   }, [api, deskId, mode, query, glob, roots])
 
+  // a file named with its line (`a.ts:82-100`): looked for by its path, opened at that line
+  const fileRef = splitLineRef(query)
   // text matches are listed by file, like the search of a File pane; definitions stay in the order of their rank
   const grouped = mode === 'search' || noDefinition
   const found: Row[] =
     mode === 'find'
-      ? roots.flatMap((r) => filterFiles(lists[r.path] ?? [], query).map((f): Row => ({ key: r.path + f, title: f.split('/').pop() ?? f, hint: f, badge: r.label, path: `${r.path}/${f}` }))).slice(0, 100)
+      ? roots.flatMap((r) => filterFiles(lists[r.path] ?? [], fileRef.query).map((f): Row => ({ key: r.path + f, title: `${f.split('/').pop() ?? f}${fileRef.line ? `:${fileRef.line}` : ''}`, hint: f, badge: r.label, path: `${r.path}/${f}`, line: fileRef.line }))).slice(0, 100)
       : grouped
         ? groupByFile(hits)
         : hits

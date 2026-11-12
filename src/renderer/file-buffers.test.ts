@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildTree, filterFiles, isFileDirty, setFileDirty } from './file-buffers'
+import { buildTree, filterFiles, isFileDirty, setFileDirty, splitLineRef } from './file-buffers'
 
 describe('the file tree', () => {
   it('nests paths, folders first, names in order', () => {
@@ -44,5 +44,17 @@ describe('unsaved changes', () => {
     expect(isFileDirty('p1')).toBe(true)
     setFileDirty('p1', false)
     expect(isFileDirty('p1')).toBe(false)
+  })
+})
+
+describe('a file named with its line', () => {
+  it('is looked for without the line, and opens at its first line', () => {
+    expect(splitLineRef('agent/src/modules/standards/jsonld/document-loader.service.ts:82-100')).toEqual({ query: 'agent/src/modules/standards/jsonld/document-loader.service.ts', line: 82 })
+    expect(splitLineRef('a.ts:82')).toEqual({ query: 'a.ts', line: 82 })
+    expect(splitLineRef('a.ts:82:5')).toEqual({ query: 'a.ts', line: 82 })
+    expect(splitLineRef('a.ts#L82-L100')).toEqual({ query: 'a.ts', line: 82 })
+    expect(splitLineRef('a.ts')).toEqual({ query: 'a.ts' })
+    expect(splitLineRef(':82')).toEqual({ query: ':82' })
+    expect(splitLineRef('a.ts:0')).toEqual({ query: 'a.ts:0' })
   })
 })

@@ -66,6 +66,16 @@ const isSubsequence = (text: string, word: string): boolean => {
  * word is found letter by letter (a typo, a missing folder name); and when a typed extension is the reason (`.js` for a `.ts` file), the
  * same without it. A `./` in front is ignored, so a relative path from the project's root can be pasted as it is.
  */
+/**
+ * A file as Claude, a stack trace or GitHub names it, with where in it: `src/a.ts:82`, `src/a.ts:82-100`, `src/a.ts:82:5`, `src/a.ts#L82-L100`.
+ * The path is what is looked for; the (first) line is where the file opens.
+ */
+export function splitLineRef(query: string): { query: string; line?: number } {
+  const m = /^(.*?)(?::(\d+)(?:[-:]\d+)?|#L(\d+)(?:-L?\d+)?)\s*$/.exec(query)
+  const line = m && Number(m[2] ?? m[3])
+  return m && m[1].trim() && line ? { query: m[1], line } : { query }
+}
+
 export function filterFiles(files: readonly string[], query: string): string[] {
   const words = query.trim().replace(/^\.?\/+/, '').toLowerCase().split(/\s+/).filter(Boolean)
   if (words.length === 0) return []
