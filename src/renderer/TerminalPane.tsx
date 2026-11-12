@@ -7,6 +7,7 @@ import { pollWhileFocused } from './poll'
 import { setTerminalTitle } from './terminal-titles'
 import { HiddenOutput, useTerminalActive } from './terminal-active'
 import { decodeOsc52, isCopyKey, isTerminalReply, terminalKey } from './terminal-keys'
+import { COPY_KEY, END_SELECTION_KEY, isMouseReport } from '../main/domain/tmux-copy'
 import { currentTheme, onThemeChange } from './theme'
 import { findLinks, type TermRow } from './terminal-links'
 import { useOpenLink } from './OpenLink'
@@ -58,7 +59,7 @@ export function TerminalPane({ deskId, paneId, cwd, viewId }: Props) {
       fontFamily: 'ui-monospace, Menlo, monospace',
       fontSize: 12,
       cursorBlink: true,
-      // tmux has the mouse (selecting, scrolling): Option+drag selects in the terminal itself, as in Terminal.app
+      // tmux has the mouse (selecting, scrolling; see tmux-copy): Option+drag selects in the terminal itself
       macOptionClickForcesSelection: true,
       theme: currentTheme().xterm
     })
@@ -71,7 +72,7 @@ export function TerminalPane({ deskId, paneId, cwd, viewId }: Props) {
     const sized = (): boolean => !!host.current && host.current.clientWidth > 0 && host.current.clientHeight > 0
     if (sized()) fit.fit()
 
-    // tmux copies a mouse selection to the clipboard with OSC 52
+    // tmux copies its selection to the clipboard with OSC 52 (on Command+C)
     const osc52 = term.parser.registerOscHandler(52, (data) => {
       const text = decodeOsc52(data)
       if (text) void api.writeClipboard(text)
@@ -163,13 +164,27 @@ export function TerminalPane({ deskId, paneId, cwd, viewId }: Props) {
         void api.writeClipboard(term.getSelection())
         return false
       }
+      // without one, tmux copies its own selection (if there is one)
+      if (isCopyKey(e, true)) {
+        api.terminalInput(id, COPY_KEY)
+        return false
+      }
       const k = terminalKey(e)
       if (k.send) api.terminalInput(id, k.send)
       return !k.swallow
     })
+    // after a click or a drag tmux may have a selection: the next key typed ends it first, so it reaches the shell
+    let selecting = false
+    const onMouseDown = (e: MouseEvent) => (selecting ||= e.button === 0 && !e.altKey)
+    const box = host.current!
+    box.addEventListener('mousedown', onMouseDown, true)
     const input = term.onData((data) => {
       if (replaying > 0 && isTerminalReply(data)) return
-      api.terminalInput(paneId, data)
+      if (selecting && !isMouseReport(data)) {
+        selecting = false
+        data = END_SELECTION_KEY + data
+      }
+      api.terminalInput(id, data)
     })
     const area = term.textarea!
     const onFocus = () => api.paneFocus(deskId, paneId, true)
@@ -192,6 +207,7 @@ export function TerminalPane({ deskId, paneId, cwd, viewId }: Props) {
 
     return () => {
       observer.disconnect()
+      box.removeEventListener('mousedown', onMouseDown, true)
       area.removeEventListener('focus', onFocus)
       area.removeEventListener('blur', onBlur)
       api.paneFocus(deskId, paneId, false)

@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import { copyBindings } from '../domain/tmux-copy'
 
 const run = promisify(execFile)
 
@@ -92,6 +93,8 @@ export function createTmux(socket: string): Tmux {
         // the app owns scrolling and the status line
         await tmux(['set-option', '-t', `=${session}:`, 'status', 'off'])
         await sizeFollowsLatest(`=${session}:`)
+        // selecting keeps the selection until Command+C, as in a terminal (the server may be new, so each time)
+        await ok(copyBindings())
       }),
     async killWindow(session, window) {
       await ok(['kill-window', '-t', `${session}:=${window}`])

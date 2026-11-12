@@ -59,7 +59,7 @@ export const isCopyKey = (e: KeyLike, hasSelection: boolean): boolean =>
   e.type === 'keydown' && hasSelection && e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'c'
 
 /**
- * OSC 52, "set the clipboard": `<targets>;<base64 text>`. tmux sends it when you select with the mouse in
+ * OSC 52, "set the clipboard": `<targets>;<base64 text>`. tmux sends it when Command+C copies its selection in
  * copy mode (`set-clipboard external`). A "?" asks to read the clipboard, which a terminal should not hand out.
  */
 export function decodeOsc52(data: string): string | undefined {
