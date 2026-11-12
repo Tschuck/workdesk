@@ -181,6 +181,12 @@ export class LayoutService {
     )
   }
 
+  /** The user dragged the border between Panes: the shares of the split at `at` (see layoutOps.setSplitSizes). */
+  async setSplitSizes(deskId: string, tabId: string, at: number[], sizes: number[]): Promise<DeskLayout> {
+    const layout = await this.get(deskId)
+    return this.save(deskId, this.mapTab(layout, tabId, (t) => ({ ...t, layout: layoutOps.setSplitSizes(t.layout, at, sizes) })))
+  }
+
   async setBrowserLocation(deskId: string, tabId: string, paneId: string, url: string, title?: string, favicon?: string): Promise<DeskLayout> {
     const layout = await this.get(deskId)
     return this.save(

@@ -45,6 +45,7 @@ const api: WorkDeskApi = {
   setBrowserLocation: (d, t, p, url, title, favicon) => ipcRenderer.invoke(IPC.setBrowserLocation, d, t, p, url, title, favicon),
   closePane: (d, t, p) => ipcRenderer.invoke(IPC.closePane, d, t, p),
   setFileLocation: (d, t, p, path, line) => ipcRenderer.invoke(IPC.setFileLocation, d, t, p, path, line),
+  setSplitSizes: (d, t, at, sizes) => ipcRenderer.invoke(IPC.setSplitSizes, d, t, at, sizes),
   addTab: (d, kind, url, cwd) => ipcRenderer.invoke(IPC.addTab, d, kind, url, cwd),
   addBrowserTabs: (d, urls) => ipcRenderer.invoke(IPC.addBrowserTabs, d, urls),
   renameTab: (d, t, n) => ipcRenderer.invoke(IPC.renameTab, d, t, n),

@@ -128,6 +128,8 @@ export interface WorkDeskApi {
   /** the Review Tab of a WorkDesk (made when there is none); `activate` false leaves the Tab on screen as it is */
   openReviewTab(deskId: string, activate?: boolean): Promise<DeskLayout>
   setFileLocation(deskId: string, tabId: string, paneId: string, path: string | undefined, line?: number): Promise<DeskLayout>
+  /** the shares of the children of a split, dragged by the user; `at`: the child indices on the way to it from the Tab's root */
+  setSplitSizes(deskId: string, tabId: string, at: number[], sizes: number[]): Promise<DeskLayout>
   /** one browser Tab per page, e.g. all pull requests of a WorkDesk */
   addBrowserTabs(deskId: string, urls: string[]): Promise<DeskLayout>
   renameTab(deskId: string, tabId: string, name: string): Promise<DeskLayout>
@@ -610,6 +612,7 @@ export const IPC = {
   closePane: 'layout:close-pane',
   setBrowserLocation: 'layout:set-browser-location',
   setFileLocation: 'layout:set-file-location',
+  setSplitSizes: 'layout:set-split-sizes',
   addTab: 'layout:add-tab',
   openReviewTab: 'layout:open-review-tab',
   addBrowserTabs: 'layout:add-browser-tabs',

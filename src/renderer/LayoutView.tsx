@@ -1,4 +1,5 @@
-import { paneIds, type DeskLayout, type LayoutNode, type SplitDirection } from '../main/domain/layout'
+import { Fragment, useState } from 'react'
+import { paneIds, splitSizes, type DeskLayout, type LayoutNode, type SplitDirection, type SplitNode } from '../main/domain/layout'
 import { BrowserPane } from './BrowserPane'
 import { TerminalPane } from './TerminalPane'
 import { FilePane } from './FilePane'
@@ -14,12 +15,20 @@ interface Props {
   onSplit: (paneId: string, direction: SplitDirection, kind?: 'terminal' | 'browser' | 'file') => void
   onClose: (paneId: string) => void
   onLayout: (layout: DeskLayout) => void
+  /** where this node is in the Tab: the child index on each level from the root */
+  at?: number[]
+  /** its share of the split it is in */
+  share?: number
 }
 
-export function LayoutView({ deskId, tabId, node, onSplit, onClose, onLayout }: Props) {
+/** a Pane is not dragged smaller than this */
+const MIN_PANE_PX = 80
+
+export function LayoutView({ deskId, tabId, node, onSplit, onClose, onLayout, at = [], share }: Props) {
+  const style = share === undefined ? undefined : { flex: `${share} 1 0` }
   if (node.type === 'pane') {
     return (
-      <div className="pane-cell" data-pane-id={node.id}>
+      <div className="pane-cell" data-pane-id={node.id} style={style}>
         <TabDropZone tabId={tabId} paneId={node.id} />
         <div className="pane-bar">
           <span
@@ -75,10 +84,63 @@ export function LayoutView({ deskId, tabId, node, onSplit, onClose, onLayout }: 
       </div>
     )
   }
+  return <SplitView deskId={deskId} tabId={tabId} node={node} onSplit={onSplit} onClose={onClose} onLayout={onLayout} at={at} style={style} />
+}
+
+/** The children of a split side by side (or stacked), with a handle between each two to drag their border; a double click makes them all the same. */
+function SplitView({ deskId, tabId, node, onSplit, onClose, onLayout, at, style }: Omit<Props, 'node' | 'share'> & { node: SplitNode; at: number[]; style?: { flex: string } }) {
+  // the shares while a handle is dragged; saved when it is let go
+  const [dragged, setDragged] = useState<number[]>()
+  const sizes = dragged ?? splitSizes(node)
+  const row = node.direction === 'horizontal'
+  const save = (next: number[]) => void window.workdesk.setSplitSizes(deskId, tabId, at, next).then(onLayout, () => undefined).finally(() => setDragged(undefined))
+
+  const start = (down: React.MouseEvent<HTMLElement>, i: number) => {
+    if (down.button !== 0) return
+    down.preventDefault()
+    const box = down.currentTarget.parentElement!.getBoundingClientRect()
+    const total = row ? box.width : box.height
+    const from = row ? down.clientX : down.clientY
+    const base = splitSizes(node)
+    const pair = base[i] + base[i + 1]
+    const min = Math.min(MIN_PANE_PX / total, pair / 2)
+    let current = base
+    const shield = document.createElement('div')
+    shield.className = 'resizer-shield' + (row ? '' : ' rows')
+    // a web page under the pointer would take the mouse events of the drag
+    document.body.append(shield)
+    const move = (e: MouseEvent) => {
+      const delta = ((row ? e.clientX : e.clientY) - from) / total
+      const left = Math.min(pair - min, Math.max(min, base[i] + delta))
+      current = base.map((s, j) => (j === i ? left : j === i + 1 ? pair - left : s))
+      setDragged(current)
+    }
+    const up = () => {
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', up)
+      shield.remove()
+      if (current !== base) save(current)
+    }
+    window.addEventListener('mousemove', move)
+    window.addEventListener('mouseup', up)
+  }
+
   return (
-    <div className={node.direction === 'horizontal' ? 'split row' : 'split column'}>
+    <div className={row ? 'split row' : 'split column'} style={style}>
       {node.children.map((child, i) => (
-        <LayoutView key={child.type === 'pane' ? child.id : `split-${i}`} deskId={deskId} tabId={tabId} node={child} onSplit={onSplit} onClose={onClose} onLayout={onLayout} />
+        <Fragment key={child.type === 'pane' ? child.id : `split-${i}`}>
+          {i > 0 && (
+            <div
+              className={'split-handle ' + (row ? 'cols' : 'rows')}
+              role="separator"
+              aria-orientation={row ? 'vertical' : 'horizontal'}
+              title="Drag to change the sizes (double click: all the same)"
+              onMouseDown={(e) => start(e, i - 1)}
+              onDoubleClick={() => save(node.children.map(() => 1))}
+            />
+          )}
+          <LayoutView deskId={deskId} tabId={tabId} node={child} onSplit={onSplit} onClose={onClose} onLayout={onLayout} at={[...at, i]} share={sizes[i]} />
+        </Fragment>
       ))}
     </div>
   )

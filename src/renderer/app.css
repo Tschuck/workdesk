@@ -80,7 +80,15 @@ main h2 { font-size: 18px; color: var(--fg-bright); padding-bottom: 10px; border
 .tab .x { border: none; background: none; padding: 0 2px; }
 .tab-add { border: none; background: none; margin-left: 4px; }
 .tab-body { flex: 1; min-height: 0; display: flex; }
-.split { display: flex; flex: 1; min-width: 0; min-height: 0; gap: 1px; background: var(--line); }
+.split { display: flex; flex: 1; min-width: 0; min-height: 0; background: var(--line); }
+/* the 1px line between two Panes, with a wider area to grab it */
+.split-handle { position: relative; flex: none; z-index: 35; background: var(--line); }
+.split-handle.cols { width: 1px; cursor: col-resize; }
+.split-handle.rows { height: 1px; cursor: row-resize; }
+.split-handle::after { content: ''; position: absolute; inset: 0; }
+.split-handle.cols::after { left: -3px; right: -3px; }
+.split-handle.rows::after { top: -3px; bottom: -3px; }
+.split-handle:hover::after, .split-handle:active::after { background: rgb(var(--yellow-rgb) / .5); }
 .split.row { flex-direction: row; }
 .split.column { flex-direction: column; }
 .pane-cell { position: relative; flex: 1; min-width: 0; min-height: 0; background: var(--bg); display: flex; }
@@ -1037,6 +1045,7 @@ button.side-title:hover { color: var(--fg-bright); }
 .tabs-side .tab-add:hover { background: rgb(var(--fg-rgb) / .06); color: var(--fg-bright); }
 .tabs-side .tab-add-label { display: inline; }
 
+.resizer-shield.rows { cursor: row-resize; }
 /* the + of a row of tabs: a cell of the bar, as high as the tabs, square */
 .browser-view:not(.tabs-side) .tab-add, .files-view:not(.tabs-side) .tab-add { align-self: stretch; height: auto; margin: 0; padding: 0 14px; border: none; border-right: 1px solid var(--line); border-radius: 0; background: none; color: var(--dim); font-size: 14px; }
 .browser-view:not(.tabs-side) .tab-add:hover, .files-view:not(.tabs-side) .tab-add:hover { background: rgb(var(--fg-rgb) / .08); color: var(--fg-bright); }

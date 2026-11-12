@@ -42,6 +42,8 @@ export interface SplitNode {
   /** horizontal: children side by side, vertical: stacked */
   direction: SplitDirection
   children: LayoutNode[]
+  /** the share of each child (they add up to 1), dragged by the user; none: all the same */
+  sizes?: number[]
 }
 
 export type LayoutNode = PaneNode | SplitNode
@@ -176,7 +178,11 @@ export function splitPane(node: LayoutNode, paneId: string, direction: SplitDire
   if (at !== -1 && node.direction === direction) {
     const children = [...node.children]
     children.splice(before ? at : at + 1, 0, ...parts)
-    return { ...node, children }
+    // the new Panes share the space of the one they were split from
+    const sizes = node.sizes && splitSizes(node)
+    if (!sizes) return { ...node, children }
+    const share = Array<number>(parts.length + 1).fill(sizes[at] / (parts.length + 1))
+    return { ...node, children, sizes: [...sizes.slice(0, at), ...share, ...sizes.slice(at + 1)] }
   }
   return { ...node, children: node.children.map((c) => splitPane(c, paneId, direction, added, before)) }
 }
@@ -197,13 +203,37 @@ export function mergeTab(layout: DeskLayout, fromTabId: string, toTabId: string,
 /** Remove a Pane; a split left with one child collapses into it. Returns undefined when nothing is left. */
 export function removePane(node: LayoutNode, paneId: string): LayoutNode | undefined {
   if (node.type === 'pane') return node.id === paneId ? undefined : node
-  const children = node.children.flatMap((c) => {
-    const kept = removePane(c, paneId)
-    return kept ? [kept] : []
-  })
+  const sizes = node.sizes && splitSizes(node)
+  const kept = node.children.map((c) => removePane(c, paneId))
+  const children = kept.filter((c): c is LayoutNode => !!c)
   if (children.length === 0) return undefined
   if (children.length === 1) return children[0]
-  return { ...node, children }
+  // the others keep their shares among themselves
+  return sizes ? { ...node, children, sizes: normalise(sizes.filter((_, i) => kept[i])) } : { ...node, children }
+}
+
+const normalise = (sizes: readonly number[]): number[] => {
+  const sum = sizes.reduce((a, b) => a + b, 0)
+  return sizes.map((s) => s / sum)
+}
+
+/** The share of each child of a split: what the user dragged, or all the same when that does not fit the children (any more). */
+export function splitSizes(node: SplitNode): number[] {
+  const { sizes, children } = node
+  if (sizes && sizes.length === children.length && sizes.every((s) => Number.isFinite(s) && s > 0)) return normalise(sizes)
+  return children.map(() => 1 / children.length)
+}
+
+/** Set the shares of the split at `at` (the index of each child on the way from the Tab's root; [] is the root itself). */
+export function setSplitSizes(node: LayoutNode, at: readonly number[], sizes: readonly number[]): LayoutNode {
+  if (node.type !== 'split') throw new Error('There is no split there')
+  if (at.length > 0) {
+    const [i, ...rest] = at
+    if (!node.children[i]) throw new Error('There is no split there')
+    return { ...node, children: node.children.map((c, j) => (j === i ? setSplitSizes(c, rest, sizes) : c)) }
+  }
+  if (sizes.length !== node.children.length || !sizes.every((s) => Number.isFinite(s) && s > 0)) throw new Error('The sizes do not fit the split')
+  return { ...node, sizes: normalise(sizes) }
 }
 
 /** A new WorkDesk starts on its Details when it has them. */
@@ -372,7 +402,7 @@ export function movePane(layout: DeskLayout, fromTabId: string, paneId: string, 
   const rest = removePane(from.layout, paneId)
   if (!to && !rest) return layout
   const target: PaneTab = to
-    ? { ...to, layout: to.layout.type === 'split' && to.layout.direction === 'horizontal' ? { ...to.layout, children: [...to.layout.children, pane] } : { type: 'split', direction: 'horizontal', children: [to.layout, pane] } }
+    ? { ...to, layout: to.layout.type === 'split' && to.layout.direction === 'horizontal' ? { ...to.layout, children: [...to.layout.children, pane], sizes: undefined } : { type: 'split', direction: 'horizontal', children: [to.layout, pane] } }
     : {
         kind: 'panes',
         id: newTabId,

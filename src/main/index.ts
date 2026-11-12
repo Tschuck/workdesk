@@ -297,6 +297,11 @@ function registerIpc({ orchestrator, settings, remote, browserSessions, pagePerm
     layouts.addTab(d, kind === 'file' ? 'file' : kind === 'browser' ? 'browser' : 'terminal', kind === 'file' ? (typeof url === 'string' ? url : undefined) : typeof url === 'string' && /^https?:\/\//.test(url) ? url : undefined, kind !== 'file' && kind !== 'browser' && typeof cwd === 'string' && cwd.startsWith('/') ? cwd : undefined)
   )
   ipcMain.handle(IPC.setFileLocation, (_e, d, t, p, path, line) => layouts.setFileLocation(d, t, p, typeof path === 'string' ? path : undefined, typeof line === 'number' ? line : undefined))
+  ipcMain.handle(IPC.setSplitSizes, (_e, d, t, at, sizes) => {
+    const numbers = (v: unknown): v is number[] => Array.isArray(v) && v.every((n) => typeof n === 'number')
+    if (!numbers(at) || !numbers(sizes)) throw new Error('The sizes do not fit the split')
+    return layouts.setSplitSizes(d, t, at, sizes)
+  })
   const pinnedNow = () => layouts.pins(service.state().desks.filter((d) => d.presence !== 'planned').map((d) => d.id))
   ipcMain.handle(IPC.pinnedTabs, () => pinnedNow())
   ipcMain.handle(IPC.moveTabToGroup, (_e, d: string, t: string, g: string) => layouts.moveTabToGroup(String(d), String(t), String(g ?? '')))
