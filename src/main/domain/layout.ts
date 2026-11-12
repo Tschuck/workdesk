@@ -236,6 +236,25 @@ export function setSplitSizes(node: LayoutNode, at: readonly number[], sizes: re
   return { ...node, sizes: normalise(sizes) }
 }
 
+/**
+ * The Pane that gets the focus when this one is closed: the one beside it that takes its space (the next in its split,
+ * the previous for the last one), and inside a split there the Pane nearest to it. Undefined when it is not in a split.
+ */
+export function paneAfterClose(node: LayoutNode, paneId: string): string | undefined {
+  if (node.type === 'pane') return undefined
+  const at = node.children.findIndex((c) => (c.type === 'pane' ? c.id === paneId : findPane(c, paneId)))
+  if (at === -1) return undefined
+  const child = node.children[at]
+  if (child.type === 'split') {
+    const inner = paneAfterClose(child, paneId)
+    if (inner) return inner
+  }
+  if (node.children.length < 2) return undefined
+  const next = at + 1 < node.children.length
+  const ids = paneIds(node.children[next ? at + 1 : at - 1])
+  return next ? ids[0] : ids[ids.length - 1]
+}
+
 /** A new WorkDesk starts on its Details when it has them. */
 export function defaultLayout(tabId: string, paneId: string, cwd?: string, detailsTabId?: string): DeskLayout {
   const tabs: Tab[] = [{ kind: 'panes', id: tabId, name: 'Terminal', layout: newTerminalPane(paneId, cwd) }]

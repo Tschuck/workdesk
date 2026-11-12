@@ -10,7 +10,7 @@ import { useOpenRequests } from './open-requests'
 import { branchChip, branchOf, branchRoots, groupedOrder, setScope, useScope } from './scope'
 import { listTitle, useTerminalTitles } from './terminal-titles'
 import { tabsClass, useDeskTabsPosition } from './tabs-layout'
-import { cycleTab, findPane, fullTabName, paneSummaries, hasPages, paneIds, isTabHibernated, singleBrowserFavicon, type DeskLayout, type PaneTab, type SplitDirection, type Tab } from '../main/domain/layout'
+import { cycleTab, findPane, fullTabName, paneSummaries, hasPages, paneAfterClose, paneIds, isTabHibernated, singleBrowserFavicon, type DeskLayout, type PaneTab, type SplitDirection, type Tab } from '../main/domain/layout'
 import { cycleDelta, recentDelta } from './terminal-keys'
 import { touchRecent, walkRecent } from './recent-tabs'
 import type { RestackStep } from '../main/domain/stack'
@@ -709,6 +709,12 @@ export function DeskView({ desk, state, run, visible, onClear, onCombine }: Prop
     }
     setTimeout(look, 0)
   }
+  /** A Pane of a split is closed: the keyboard goes to the Pane beside it that takes its space. */
+  const closePaneAndFocus = (tabId: string, paneId: string) => {
+    const t = layout.tabs.find((x) => x.id === tabId)
+    const next = t?.kind === 'panes' ? paneAfterClose(t.layout, paneId) : undefined
+    void api.closePane(deskId, tabId, paneId).then((l) => (setLayout(l), next && focusPaneSoon(next)))
+  }
   /** A file in a File tab (the tab that has it, or a new one), at a line when it is a hit of a search. */
   const openFileTab = (path: string, line?: number) =>
     void api.addTab(deskId, 'file', path).then(async (l) => {
@@ -740,7 +746,7 @@ export function DeskView({ desk, state, run, visible, onClear, onCombine }: Prop
     if (t?.kind !== 'panes') return
     // the only Pane of a Tab: closing it closes the Tab, so ask first
     if (t.layout.type === 'pane') void askClose(tabId, paneId)
-    else update(api.closePane(deskId, tabId, paneId))
+    else closePaneAndFocus(tabId, paneId)
   }
   const confirmTab = confirm && layout.tabs.find((t) => t.id === confirm.tabId)
 
@@ -1075,7 +1081,7 @@ export function DeskView({ desk, state, run, visible, onClear, onCombine }: Prop
                   onSplit={(paneId, dir: SplitDirection, kind) => splitAndFocus(t.id, api.splitPane(deskId, t.id, paneId, dir, kind))}
                   onClose={(paneId) =>
                     // the only Pane of a Tab: closing it closes the Tab, so ask first
-                    t.layout.type === 'pane' ? void askClose(t.id, paneId) : update(api.closePane(deskId, t.id, paneId))
+                    t.layout.type === 'pane' ? void askClose(t.id, paneId) : closePaneAndFocus(t.id, paneId)
                   }
                   onLayout={setLayout}
                 />
