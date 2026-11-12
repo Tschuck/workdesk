@@ -40,7 +40,7 @@ Sessions started in a pane are restored with `claude --resume` after parking, in
 
 ## Skills and the command line
 
-The terminals of a WorkDesk have `$WORKDESK_CLI`, a small command that talks to the running app. `node "$WORKDESK_CLI" help` lists the `desk`, `branch`, `todo`, `review` and `pane` commands. They act on the WorkDesk of the current folder, or `--desk <id|name>`.
+The terminals of a WorkDesk have `$WORKDESK_CLI`, a small command that talks to the running app. `node "$WORKDESK_CLI" help` lists the `desk`, `branch`, `todo`, `pr`, `review` and `pane` commands (`pr add <url>` puts a pull request of yours into the WorkDesk; `desk-pr` does it after opening one). They act on the WorkDesk of the current folder, or `--desk <id|name>`.
 
 The `skills/` folder has ready-made Claude Code skills on top of it: `desk-open`, `desk-close`, `desk-add-branch`, `desk-review`, `desk-review-preset`, `desk-todo`, `desk-status`, `desk-address-comments`, `desk-review-to-pr`, `desk-pr`, `desk-handoff` and `desk-scratch`. Install them from *Settings → Claude → Skills*, or copy them to `~/.claude/skills/`.
 

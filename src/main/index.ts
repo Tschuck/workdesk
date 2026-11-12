@@ -445,6 +445,7 @@ function registerIpc({ orchestrator, settings, remote, browserSessions, pagePerm
       addBranch: (d, p, b, base) => branches.addBranch(d, p, b, base),
       removeBranch: (d, p, b) => branches.removeBranchFromDesk(d, p, b),
       newTodo: (d, t) => service.createTodoInDesk(d, t),
+      addPr: (d, item) => service.addDeskItem(d, item),
       resolveTodo: (id, r) => service.setTodoResolved(id, r),
       reviewState: (d, r) => reviews.state(d, r),
       addComment: (d, r, f, l, t) => reviews.addComment(d, r, f, l, t),

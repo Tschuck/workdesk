@@ -8,4 +8,5 @@ description: Open or update the pull request of a branch in this WorkDesk. Use f
 3. `gh pr view` to see if one exists. If not: `gh pr create --title "<title>" --body "<body>"`; otherwise `gh pr edit`.
 4. Title: one line of what the user gets. Body: write it with `/t-pr-description` when that skill is there (it starts from the review scratch file: TLDR, what changed, from the outside, how to test, look closely); otherwise what and why, how it was tested, anything to look at first. Base it on `git log <base>..HEAD`.
 5. No Claude or AI attribution in the title, body or comments.
-6. Give the user the link.
+6. Add the pull request to the WorkDesk you are working in, as yours: `node "$WORKDESK_CLI" pr add <url> --title "<title>"` (the URL `gh pr create` printed, or `gh pr view --json url -q .url`). It does nothing when the WorkDesk has it already. Without `$WORKDESK_CLI` (not a WorkDesk terminal), skip this and say so.
+7. Give the user the link.

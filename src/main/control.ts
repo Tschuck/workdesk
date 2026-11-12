@@ -2,7 +2,8 @@ import { realpath } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { matchCwd } from './domain/match'
 import { filterByPreset, type ReviewPreset } from './domain/review-presets'
-import type { Todo, WorkDesk } from './domain/types'
+import type { DeskItem, Todo, WorkDesk } from './domain/types'
+import { parsePrRef } from './domain/desk-prs'
 import { openSignals } from './domain/signal'
 import { dayKey, type TimeLog } from './domain/time-tracking'
 import type { ClaudeRow } from './domain/claude-overview'
@@ -41,6 +42,8 @@ export interface ControlDeps {
   addBranch(deskId: string, project: string, branch: string, base?: string): Promise<unknown>
   removeBranch(deskId: string, project: string, branch: string): Promise<unknown>
   newTodo(deskId: string, title: string): Promise<unknown>
+  /** a pull request of yours as a work item of the WorkDesk */
+  addPr(deskId: string, item: DeskItem): Promise<unknown>
   resolveTodo(id: string, resolved: boolean): Promise<unknown>
   reviewState(deskId: string, root: string): Promise<{ base?: string; mergeBase?: string; message?: string; entries: unknown[]; comments: unknown[] }>
   addComment(deskId: string, root: string, file: string, line: number, text: string): Promise<unknown>
@@ -210,6 +213,14 @@ export function createControl(d: ControlDeps): (req: ControlRequest) => Promise<
           if (!title) throw new Error('A Todo needs a title')
           await d.newTodo(desk.id, title)
           return { ok: true, data: { added: title, desk: desk.id } }
+        }
+        case 'pr.add': {
+          const desk = await deskOf(req)
+          const pr = parsePrRef(str(a.pr) ?? '')
+          if (!pr) throw new Error('Give the pull request as its GitHub address or as owner/repo#12')
+          if ((desk.items ?? []).some((i) => i.kind === 'pr' && i.id === pr.id)) return { ok: true, data: { pr: pr.id, desk: desk.id, already: true } }
+          await d.addPr(desk.id, { kind: 'pr', id: pr.id, title: str(a.title) ?? pr.id, url: pr.url, role: 'mine' })
+          return { ok: true, data: { pr: pr.id, desk: desk.id } }
         }
         case 'todo.resolve': {
           const desk = await deskOf(req)

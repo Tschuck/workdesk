@@ -18,6 +18,8 @@ export const HELP = `workdesk <group> <command> [options]   (run in a WorkDesk t
 
   todo list | add <title> | done <id> | reopen <id>
 
+  pr add <url|owner/repo#n> [--title <text>]   a pull request of yours, as a work item of this WorkDesk
+
   review state [--root <project|path>] [--preset <name>]   --preset: only the changed files of that Review preset
   review comment <file> <line> <text…> [--root <project|path>]
   review note <text…> [--root <project|path>]   a comment on the review as a whole
@@ -42,6 +44,7 @@ export function parseControl(argv) {
     else if (a === '--include' || a === '--exclude') (args[a.slice(2)] ??= []).push(rest[++i])
     else if (a === '--file') (args.files ??= []).push(rest[++i])
     else if (a === '--description') args.description = rest[++i]
+    else if (a === '--title') args.title = rest[++i]
     else words.push(a)
   }
   const need = (n, what) => (words.length < n ? `Missing ${what}` : undefined)
@@ -82,6 +85,9 @@ export function parseControl(argv) {
     case 'todo.reopen':
       if (need(1, 'a Todo id')) return { error: need(1, 'a Todo id') }
       return { control: 'todo.resolve', args: { ...args, id: words[0], resolved: command === 'done' } }
+    case 'pr.add':
+      if (need(1, 'the pull request (its address or owner/repo#n)')) return { error: need(1, 'the pull request (its address or owner/repo#n)') }
+      return { control, args: { ...args, pr: words[0] } }
     case 'review.state':
       return { control, args }
     case 'review.preset': {

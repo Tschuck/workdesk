@@ -21,6 +21,7 @@ function setup(extra: Partial<ControlDeps> = {}) {
     addBranch: async (d, p, b, base) => void calls.push(`add ${d} ${p} ${b} ${base ?? ''}`),
     removeBranch: async () => undefined,
     newTodo: async (d, t) => void calls.push(`todo ${d} ${t}`),
+    addPr: async (d, item) => void calls.push(`pr ${d} ${item.id} ${item.role} ${item.title} ${item.url}`),
     resolveTodo: async (id, r) => void calls.push(`resolve ${id} ${r}`),
     reviewState: async () => ({ entries: [], comments: [] }),
     addComment: async (_d, root, file, line, text) => ({ root, file, line, text }),
@@ -49,6 +50,17 @@ describe('review presets', () => {
     })
     expect(await run({ control: 'review.state', args: { desk: 'a', root: 'p', preset: 'without tests' } })).toMatchObject({ ok: true, data: { entries: [{ path: 'a.ts' }] } })
     expect(await run({ control: 'review.state', args: { desk: 'a', root: 'p', preset: 'nope' } })).toMatchObject({ ok: false })
+  })
+})
+
+describe('pr add', () => {
+  it('adds a pull request of yours to the WorkDesk, by its address or owner/repo#n, once', async () => {
+    const { run, calls } = setup({ desks: () => [{ ...desk('a', 'Alpha'), items: [{ kind: 'pr', id: 'o/r#2', title: 'old' }] } as WorkDesk] })
+    expect(await run({ control: 'pr.add', args: { desk: 'a', pr: 'https://github.com/o/r/pull/7', title: 'Fix it' } })).toMatchObject({ ok: true, data: { pr: 'o/r#7', desk: 'a' } })
+    expect(await run({ control: 'pr.add', args: { desk: 'a', pr: 'o/r#8' } })).toMatchObject({ ok: true })
+    expect(await run({ control: 'pr.add', args: { desk: 'a', pr: 'o/r#2' } })).toMatchObject({ ok: true, data: { already: true } })
+    expect(await run({ control: 'pr.add', args: { desk: 'a', pr: 'not a pr' } })).toMatchObject({ ok: false })
+    expect(calls).toEqual(['pr a o/r#7 mine Fix it https://github.com/o/r/pull/7', 'pr a o/r#8 mine o/r#8 https://github.com/o/r/pull/8'])
   })
 })
 
