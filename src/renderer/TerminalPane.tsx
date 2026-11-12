@@ -15,13 +15,17 @@ interface Props {
   deskId: string
   paneId: string
   cwd: string
+  /** one more look at a running Pane (the orchestrator shows a WorkDesk's Claude): a tmux client of its own, the Pane's stays as it is */
+  viewId?: string
 }
 
 /** Shows a Pane's tmux window; unmounting only detaches, the shell keeps running in tmux. */
 /** the size of the last terminal that was on screen */
 let lastSize: { cols: number; rows: number } | undefined
 
-export function TerminalPane({ deskId, paneId, cwd }: Props) {
+export function TerminalPane({ deskId, paneId, cwd, viewId }: Props) {
+  // what input, output and size go by: the Pane, or the look at it
+  const id = viewId ?? paneId
   const host = useRef<HTMLDivElement>(null)
   // on screen or not: a hidden terminal draws nothing (its output is kept for later) and does not poll
   const active = useTerminalActive()
@@ -110,14 +114,14 @@ export function TerminalPane({ deskId, paneId, cwd }: Props) {
     const hidden = new HiddenOutput()
     let webgl: WebglAddon | undefined
     // the title its program sets (tmux passes it on), for the list of tabs
-    const offTitle = term.onTitleChange((t) => setTerminalTitle(paneId, t))
-    const offData = api.onTerminalData((id, data) => {
-      if (id !== paneId) return
+    const offTitle = term.onTitleChange((t) => !viewId && setTerminalTitle(paneId, t))
+    const offData = api.onTerminalData((from, data) => {
+      if (from !== id) return
       if (activeRef.current) term.write(data)
       else hidden.push(data)
     })
     // the shell (or the program the pane was started with, e.g. claude) ended: say so, the pane stays until it is closed
-    const offExit = api.onTerminalExit((id) => id === paneId && term.write('\r\n\x1b[2m[This terminal has ended. Close the pane with × or ⌘W.]\x1b[0m\r\n'))
+    const offExit = api.onTerminalExit((from) => from === id && term.write('\r\n\x1b[2m[This terminal has ended. Close the pane with × or ⌘W.]\x1b[0m\r\n'))
     let shown: boolean | undefined
     let replaying = 0
     show.current = (on) => {
@@ -146,8 +150,8 @@ export function TerminalPane({ deskId, paneId, cwd }: Props) {
         // a resize makes tmux repaint the whole screen
         if (sized()) {
           fit.fit()
-          api.terminalResize(paneId, Math.max(term.cols - 1, 2), term.rows)
-          setTimeout(() => api.terminalResize(paneId, term.cols, term.rows), 30)
+          api.terminalResize(id, Math.max(term.cols - 1, 2), term.rows)
+          setTimeout(() => api.terminalResize(id, term.cols, term.rows), 30)
         }
       }
     }
@@ -160,7 +164,7 @@ export function TerminalPane({ deskId, paneId, cwd }: Props) {
         return false
       }
       const k = terminalKey(e)
-      if (k.send) api.terminalInput(paneId, k.send)
+      if (k.send) api.terminalInput(id, k.send)
       return !k.swallow
     })
     const input = term.onData((data) => {
@@ -174,13 +178,15 @@ export function TerminalPane({ deskId, paneId, cwd }: Props) {
     area.addEventListener('blur', onBlur)
     // attached out of sight: with the size the other terminals had, not xterm's default
     if (sized()) lastSize = { cols: term.cols, rows: term.rows }
-    void api.terminalAttach(deskId, paneId, cwd, sized() ? term.cols : (lastSize?.cols ?? 120), sized() ? term.rows : (lastSize?.rows ?? 36))
+    void api.terminalAttach(deskId, paneId, cwd, sized() ? term.cols : (lastSize?.cols ?? 120), sized() ? term.rows : (lastSize?.rows ?? 36), viewId).catch((e: Error) =>
+      term.write(`\r\n\x1b[2m[${e.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '')}]\x1b[0m\r\n`)
+    )
 
     const observer = new ResizeObserver(() => {
       if (!sized()) return
       fit.fit()
       lastSize = { cols: term.cols, rows: term.rows }
-      api.terminalResize(paneId, term.cols, term.rows)
+      api.terminalResize(id, term.cols, term.rows)
     })
     observer.observe(host.current!)
 
@@ -199,10 +205,10 @@ export function TerminalPane({ deskId, paneId, cwd }: Props) {
       links.dispose()
       clearTimeout(hintTimer)
       input.dispose()
-      api.terminalDetach(paneId)
+      api.terminalDetach(id)
       term.dispose()
     }
-  }, [deskId, paneId, cwd])
+  }, [deskId, paneId, cwd, viewId, id])
 
   // shown or hidden after the terminal was made
   useEffect(() => show.current(active), [active])

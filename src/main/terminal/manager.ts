@@ -38,30 +38,36 @@ export class TerminalManager {
     private readonly startEnv: (deskId: string) => Record<string, string> = () => ({})
   ) {}
 
-  /** Show a Pane's tmux window in a new pty. Re-attaching replaces the previous pty, never the shell. */
-  async attach(deskId: string, paneId: string, cwd: string, cols: number, rows: number): Promise<void> {
-    this.detach(paneId)
+  /**
+   * Show a Pane's tmux window in a new pty. Re-attaching replaces the previous pty, never the shell.
+   * With a `viewId` of its own it is one more look at a window that runs (the orchestrator shows a WorkDesk's Claude): a tmux client
+   * apart from the Pane's, which is not disturbed, and that never creates the window or reports what its commands did.
+   */
+  async attach(deskId: string, paneId: string, cwd: string, cols: number, rows: number, viewId: string = paneId): Promise<void> {
+    this.detach(viewId)
+    const looking = viewId !== paneId
     const session = sessionName(deskId)
-    const view = viewName(deskId, paneId)
+    const view = viewName(deskId, viewId)
     const fresh = !(await this.tmux.hasWindow(session, paneId))
+    if (looking && fresh) throw new Error('This terminal is not running')
     const command = fresh ? await this.startCommand(deskId, paneId) : undefined
-    await this.tmux.ensureWindow(session, paneId, cwd, command, fresh ? this.startEnv(deskId) : undefined)
+    if (!looking) await this.tmux.ensureWindow(session, paneId, cwd, command, fresh ? this.startEnv(deskId) : undefined)
     await this.tmux.createView(session, view, paneId)
     const pty = this.spawn('tmux', this.tmux.attachArgs(view), cols, rows, cwd)
-    this.ptys.set(paneId, pty)
+    this.ptys.set(viewId, pty)
     // typed like by hand, so it shows in the terminal; the tty holds it until the shell is ready
     const input = this.pendingInput.get(paneId)
     this.pendingInput.delete(paneId)
     if (fresh && input) pty.write(input)
     const scanner = new Osc133Scanner()
     pty.onData((data) => {
-      this.emit(paneId, data)
-      for (const done of scanner.push(data)) this.onCommandFinished(deskId, paneId, done.exitCode)
+      this.emit(viewId, data)
+      if (!looking) for (const done of scanner.push(data)) this.onCommandFinished(deskId, paneId, done.exitCode)
     })
     pty.onExit(() => {
-      if (this.ptys.get(paneId) === pty) {
-        this.ptys.delete(paneId)
-        this.onExit(paneId)
+      if (this.ptys.get(viewId) === pty) {
+        this.ptys.delete(viewId)
+        this.onExit(viewId)
       }
     })
   }

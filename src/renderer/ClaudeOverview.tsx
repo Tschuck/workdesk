@@ -10,13 +10,15 @@ interface Props {
   openTab: (deskId: string, tabId: string) => void
   /** Panes started by the orchestrator: marked in the list */
   marked?: ReadonlySet<string>
+  /** a click shows the session here instead of going to its WorkDesk (the orchestrator) */
+  onPick?: (row: ClaudeRow) => void
 }
 
 /**
  * Every Claude session running in the terminals of the WorkDesks in use: which WorkDesk and Account, what it is doing,
  * how long ago it last said something. A click goes to its WorkDesk and Tab. Parked and planned WorkDesks run nothing.
  */
-export function ClaudeOverview({ state, openDesk, openTab, marked }: Props) {
+export function ClaudeOverview({ state, openDesk, openTab, marked, onPick }: Props) {
   const [rows, setRows] = useState<ClaudeRow[]>([])
   const [now, setNow] = useState(Date.now())
 
@@ -43,7 +45,7 @@ export function ClaudeOverview({ state, openDesk, openTab, marked }: Props) {
               <button
                 className={'overview-row ' + r.state}
                 title={r.message ?? `${STATE_LABEL[r.state]} · ${r.deskName}${r.tabName ? ` · ${r.tabName}` : ''}`}
-                onClick={() => (r.tabId ? openTab(r.deskId, r.tabId) : openDesk(r.deskId))}
+                onClick={() => (onPick ? onPick(r) : r.tabId ? openTab(r.deskId, r.tabId) : openDesk(r.deskId))}
               >
                 <span className="overview-dot" />
                 <span className="overview-desk">{r.deskName}{r.tabName ? <small className="hint"> · {r.tabName}</small> : null}{marked?.has(r.paneId) && <small className="overview-orch" title="Started by the orchestrator"> orchestrator</small>}</span>

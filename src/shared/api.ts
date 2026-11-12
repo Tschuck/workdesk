@@ -474,7 +474,8 @@ export interface WorkDeskApi {
   editorOpen(deskId: string): Promise<void>
   editorFocusFolder(deskId: string, folderPath: string): Promise<void>
   editorClose(deskId: string): Promise<void>
-  terminalAttach(deskId: string, paneId: string, cwd: string, cols: number, rows: number): Promise<void>
+  /** `viewId`: one more look at a running Pane, apart from its own (input, resize, data and detach then go by the view id) */
+  terminalAttach(deskId: string, paneId: string, cwd: string, cols: number, rows: number, viewId?: string): Promise<void>
   terminalDetach(paneId: string): void
   terminalInput(paneId: string, data: string): void
   terminalResize(paneId: string, cols: number, rows: number): void

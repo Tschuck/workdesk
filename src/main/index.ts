@@ -751,7 +751,7 @@ function registerIpc({ orchestrator, settings, remote, browserSessions, pagePerm
   ipcMain.handle(IPC.editorOpen, (_e, d) => editor.open(d))
   ipcMain.handle(IPC.editorFocusFolder, (_e, d, f) => editor.focusFolder(d, f))
   ipcMain.handle(IPC.editorClose, (_e, d) => editor.close(d))
-  ipcMain.handle(IPC.terminalAttach, (_e, d, p, cwd, c, r) => terminals.attach(d, p, cwd, c, r))
+  ipcMain.handle(IPC.terminalAttach, (_e, d, p, cwd, c, r, v) => terminals.attach(d, p, cwd, c, r, typeof v === 'string' && v ? v : undefined))
   ipcMain.on(IPC.terminalDetach, (_e, p) => terminals.detach(p))
   ipcMain.on(IPC.terminalInput, (_e, p, data) => terminals.write(p, data))
   ipcMain.on(IPC.terminalResize, (_e, p, c, r) => terminals.resize(p, c, r))

@@ -156,6 +156,27 @@ describe('TerminalManager', () => {
     expect(tmux.windows.has('workdesk-d1:p1')).toBe(false)
   })
 
+  it('shows a running window once more under a view id of its own, without touching the Pane, and never creates one', async () => {
+    const tmux = new FakeTmux()
+    const ptys: FakePty[] = []
+    const out: string[] = []
+    const finished: string[] = []
+    const m = new TerminalManager(tmux, () => { const p = new FakePty(); ptys.push(p); return p }, (id, d) => out.push(`${id}:${d}`), () => {}, (d, p) => finished.push(`${d}:${p}`))
+    await expect(m.attach('d1', 'p1', '/x', 80, 24, 'orch-p1')).rejects.toThrow('not running')
+    await m.attach('d1', 'p1', '/x', 80, 24)
+    await m.attach('d1', 'p1', '/x', 80, 24, 'orch-p1')
+    expect(ptys[0].killed).toBe(false)
+    expect(tmux.views).toEqual(['workdesk-view-d1-p1', 'workdesk-view-d1-orch-p1'])
+    ptys[1].emitData('\x1b]133;D;0\x07')
+    m.write('orch-p1', 'y')
+    expect(out).toEqual(['orch-p1:\x1b]133;D;0\x07'])
+    expect(ptys[1].written).toEqual(['y'])
+    // what the commands did is told by the Pane's own terminal only
+    expect(finished).toEqual([])
+    m.detach('orch-p1')
+    expect(m.isAttached('p1')).toBe(true)
+  })
+
   it('types queued input into a new shell once, and never into one that already exists', async () => {
     const tmux = new FakeTmux()
     const ptys: FakePty[] = []

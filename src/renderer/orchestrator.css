@@ -2,7 +2,11 @@
 .orch-side { width: 320px; flex: none; overflow: auto; padding: 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
 .orch-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .orch-bar { display: flex; align-items: center; gap: 14px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
-.orch-bar h2 { margin: 0; font-size: 15px; }
+.orch-tabs { display: flex; align-self: stretch; margin: -8px 0; }
+.orch-tabs .tab-btn { display: flex; align-items: center; gap: 8px; padding: 8px 14px; }
+.orch-look-close { border: none; background: none; padding: 0 2px; color: var(--dim); cursor: pointer; }
+.orch-look-close:hover { color: var(--fg-bright); }
+.orch-term.off { display: none; }
 .orch-account { display: flex; align-items: center; gap: 8px; }
 .orch-note { color: var(--yellow); }
 .orch-term { flex: 1; min-height: 0; display: flex; }
