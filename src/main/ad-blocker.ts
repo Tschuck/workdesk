@@ -1,7 +1,7 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { FiltersEngine, Request } from '@ghostery/adblocker'
-import type { BlockLevel } from './domain/browser-sessions'
+import { blockLevelForHost, NO_SESSIONS, type BlockLevel, type BrowserSessionsConfig } from './domain/browser-sessions'
 
 /** Filter lists per level; ads include the tracker lists. */
 export const LISTS: Record<Exclude<BlockLevel, 'off'>, string[]> = {
@@ -23,6 +23,15 @@ export interface BlockDetails {
   webContents?: { getURL(): string } | null
 }
 
+/** The host of the page a request is for (its web contents, else the referrer): its site may have a level of its own. */
+export function pageHostOf(details: BlockDetails): string {
+  try {
+    return new URL(details.webContents?.getURL() || details.referrer || '').hostname
+  } catch {
+    return ''
+  }
+}
+
 /** Should this request be cancelled? Pure on top of an engine, so it can be tested with a fake one. */
 export function shouldBlock(engine: Pick<FiltersEngine, 'match'> | undefined, details: BlockDetails): boolean {
   if (!engine || !/^(https?|wss?):/i.test(details.url) || details.resourceType === 'mainFrame') return false
@@ -36,7 +45,7 @@ export function shouldBlock(engine: Pick<FiltersEngine, 'match'> | undefined, de
  * downloaded once a week, kept compiled on disk, and checked in `onBeforeRequest` of every page session.
  */
 export class AdBlocker {
-  private level: BlockLevel = 'off'
+  private config: BrowserSessionsConfig = NO_SESSIONS
   private readonly engines = new Map<BlockLevel, FiltersEngine>()
   private readonly loading = new Map<BlockLevel, Promise<void>>()
   private readonly sessions = new Set<Electron.Session>()
@@ -48,9 +57,11 @@ export class AdBlocker {
     private readonly fetchFn: typeof fetch = fetch
   ) {}
 
-  setLevel(level: BlockLevel): void {
-    this.level = level
-    if (level !== 'off') void this.ensure(level).catch((err) => console.error('tracker lists unavailable:', err))
+  /** The level of all pages and the ones sites have of their own (Settings → Browser, and a page's Site settings). */
+  setConfig(config: BrowserSessionsConfig): void {
+    this.config = config
+    const levels = new Set([config.blocking ?? 'off', ...Object.values(config.siteBlocking ?? {})])
+    for (const level of levels) if (level !== 'off') void this.ensure(level).catch((err) => console.error('tracker lists unavailable:', err))
   }
 
   /** Check every request of this session. */
@@ -65,10 +76,10 @@ export class AdBlocker {
           // a guard that fails lets the page through
         }
       }
-      const engine = this.level === 'off' ? undefined : this.engines.get(this.level)
       let cancel = false
       try {
-        cancel = shouldBlock(engine, details)
+        const level = blockLevelForHost(this.config, pageHostOf(details))
+        cancel = level !== 'off' && shouldBlock(this.engines.get(level), details)
       } catch {
         // a request the engine cannot read is let through
       }

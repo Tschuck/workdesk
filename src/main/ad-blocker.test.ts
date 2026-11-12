@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { FiltersEngine } from '@ghostery/adblocker'
-import { blockLevelOf, cleanConfig } from './domain/browser-sessions'
-import { shouldBlock } from './ad-blocker'
+import { blockLevelForHost, blockLevelOf, cleanConfig, withSiteBlocking } from './domain/browser-sessions'
+import { pageHostOf, shouldBlock } from './ad-blocker'
 
 const engine = FiltersEngine.parse('||tracker.example^$third-party\n||ads.example^')
 
@@ -26,5 +26,28 @@ describe('blocking level in the config', () => {
     expect(cleanConfig({ sessions: [], blocking: 'ads' }).blocking).toBe('ads')
     expect(blockLevelOf(cleanConfig({ sessions: [], blocking: 'everything' }))).toBe('off')
     expect(blockLevelOf(cleanConfig(null))).toBe('off')
+  })
+})
+
+describe('blocking per site', () => {
+  const config = cleanConfig({ sessions: [], blocking: 'ads', siteBlocking: { 'www.claude.ai': 'off', 'news.test': 'trackers', 'x.test': 'everything', '*.bad.test': 'off' } })
+  it('keeps a site its own valid level, by its site', () => {
+    expect(config.siteBlocking).toEqual({ 'claude.ai': 'off', 'news.test': 'trackers' })
+  })
+  it('uses the site level for its pages, else the one of all pages', () => {
+    expect(blockLevelForHost(config, 'claude.ai')).toBe('off')
+    expect(blockLevelForHost(config, 'api.claude.ai')).toBe('off')
+    expect(blockLevelForHost(config, 'other.test')).toBe('ads')
+    expect(blockLevelForHost(config, '')).toBe('ads')
+  })
+  it('is set and taken back again', () => {
+    const one = withSiteBlocking(cleanConfig({ sessions: [] }), 'github.com', 'off')
+    expect(one.siteBlocking).toEqual({ 'github.com': 'off' })
+    expect(withSiteBlocking(one, 'github.com', undefined)).not.toHaveProperty('siteBlocking')
+  })
+  it('knows the page of a request by its web contents, else the referrer', () => {
+    expect(pageHostOf({ url: 'https://cdn.test/a.js', webContents: { getURL: () => 'https://claude.ai/new' } })).toBe('claude.ai')
+    expect(pageHostOf({ url: 'https://cdn.test/a.js', referrer: 'https://news.test/' })).toBe('news.test')
+    expect(pageHostOf({ url: 'https://cdn.test/a.js' })).toBe('')
   })
 })

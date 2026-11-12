@@ -385,7 +385,7 @@ function Page({ url, paneId, rememberKey, onLocation, config, initialPartition }
         />
         <button type="button" title="Developer tools of this page (⌥⌘I)" onClick={() => { const v = view.current as unknown as { isDevToolsOpened(): boolean; openDevTools(): void; closeDevTools(): void }; v.isDevToolsOpened() ? v.closeDevTools() : v.openDevTools() }}>&lt;/&gt;</button>
         {pageId !== undefined && <browser-action-list partition={target.partition} tab={String(pageId)} alignment="bottom right" />}
-        <SiteSettings url={current} />
+        <SiteSettings url={current} onBlocking={() => view.current?.reload()} />
         <PageMenu url={current} title={title} favicon={favicon} pageId={pageId} />
         <BookmarkControls url={current} title={title} favicon={favicon} />
         <div className={'load-bar ' + phase} aria-hidden="true" />

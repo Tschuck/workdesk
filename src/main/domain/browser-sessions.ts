@@ -17,6 +17,8 @@ export interface BrowserSessionsConfig {
   sessions: BrowserSession[]
   /** applies to every session; missing means off */
   blocking?: BlockLevel
+  /** a site's own level (set on the page), instead of `blocking`: `github.com` covers gist.github.com too */
+  siteBlocking?: Record<string, BlockLevel>
   /** every domain that no rule names has a session of its own; missing means on, `false` puts them all in the shared session */
   perDomain?: boolean
 }
@@ -24,6 +26,23 @@ export interface BrowserSessionsConfig {
 export const NO_SESSIONS: BrowserSessionsConfig = { sessions: [] }
 
 export const blockLevelOf = (config?: Partial<BrowserSessionsConfig> | null): BlockLevel => (BLOCK_LEVELS.includes(config?.blocking as BlockLevel) ? config!.blocking! : 'off')
+
+/** A site's own blocking level, if it has one. */
+export const siteBlockLevelOf = (config: Partial<BrowserSessionsConfig> | null | undefined, site: string): BlockLevel | undefined => config?.siteBlocking?.[site]
+
+/** The level that holds for the pages of this host: its site's own, else the one of all pages. */
+export const blockLevelForHost = (config: Partial<BrowserSessionsConfig> | null | undefined, host: string): BlockLevel =>
+  (host && siteBlockLevelOf(config, siteOf(host))) || blockLevelOf(config)
+
+/** Give a site its own level, or (undefined) let it follow the one of all pages again. */
+export function withSiteBlocking(config: BrowserSessionsConfig, site: string, level: BlockLevel | undefined): BrowserSessionsConfig {
+  const siteBlocking = { ...config.siteBlocking }
+  if (level) siteBlocking[site] = level
+  else delete siteBlocking[site]
+  const next: BrowserSessionsConfig = { ...config, siteBlocking }
+  if (Object.keys(siteBlocking).length === 0) delete next.siteBlocking
+  return next
+}
 
 /** Does every domain without a rule get a session of its own? The default. */
 export const perDomainOf = (config?: Partial<BrowserSessionsConfig> | null): boolean => config?.perDomain !== false
@@ -148,5 +167,16 @@ export function cleanConfig(input: unknown): BrowserSessionsConfig {
   }
   const blocking = blockLevelOf(input as Partial<BrowserSessionsConfig> | null)
   const perDomain = perDomainOf(input as Partial<BrowserSessionsConfig> | null)
-  return { sessions, ...(blocking === 'off' ? {} : { blocking }), ...(perDomain ? {} : { perDomain: false }) }
+  const siteBlocking: Record<string, BlockLevel> = {}
+  const given = (input as Partial<BrowserSessionsConfig> | null)?.siteBlocking
+  for (const [host, level] of Object.entries(given && typeof given === 'object' ? given : {})) {
+    const domain = normalizeDomain(host)
+    if (domain && !domain.startsWith('*.') && BLOCK_LEVELS.includes(level)) siteBlocking[siteOf(domain)] = level
+  }
+  return {
+    sessions,
+    ...(blocking === 'off' ? {} : { blocking }),
+    ...(Object.keys(siteBlocking).length ? { siteBlocking } : {}),
+    ...(perDomain ? {} : { perDomain: false })
+  }
 }

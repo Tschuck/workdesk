@@ -24,7 +24,7 @@ The cog in the left panel's header opens *Settings*. The navigation lists, in or
 | When a WorkDesk starts waiting | *Behavior* | *Ask me*, *Park it* (asks anyway when something like a dev server or Claude runs), *Keep it active* |
 | Hibernate unused pages | *Browser → General* | delay, off, and hosts that never hibernate |
 | Default browser | *Browser → General* | make WorkDesk open links from other apps |
-| Tracker and ad blocking | *Browser → Security* | none, trackers, trackers and ads |
+| Tracker and ad blocking | *Browser → Security* | none, trackers, trackers and ads; a site's own level is set in its site settings |
 | Browsing history | *Browser → Security*, *History* | off, clear, forget pages older than N days |
 
 Each page is described where its feature is: [Browser](./browser.md), [Services](./services.md), [Claude](./claude.md), [Profiles](./profiles.md), [Signals, parking and resources](./signals-and-resources.md).

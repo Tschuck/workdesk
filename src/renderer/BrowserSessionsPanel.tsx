@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { perDomainOf, type BlockLevel, type BrowserSession, type BrowserSessionsConfig } from '../main/domain/browser-sessions'
+import { perDomainOf, withSiteBlocking, type BlockLevel, type BrowserSession, type BrowserSessionsConfig } from '../main/domain/browser-sessions'
 import type { Grant } from '../main/domain/page-origin'
 import { loadBrowserSessions, setBrowserSessions } from './browser-sessions'
 import { Field, Modal, PageHead } from './Modal'
@@ -41,7 +41,7 @@ export function TrackerBlockingPanel() {
     <section>
       <h2>Tracker and ad blocking</h2>
       <p className="hint">
-        The default level of protection for every page in the Browser. Blocked requests never leave the app. The lists are downloaded when a level
+        The default level of protection for every page in the Browser; a site can have its own, set in its Site settings. Blocked requests never leave the app. The lists are downloaded when a level
         is first chosen and renewed weekly. Pages that are open need a reload.
       </p>
       {error && <div className="error" onClick={() => setError(undefined)}>{error}</div>}
@@ -53,6 +53,13 @@ export function TrackerBlockingPanel() {
           </label>
         ))}
       </div>
+      {Object.entries(config.siteBlocking ?? {}).map(([site, l]) => (
+        <div key={site} className="pr-row">
+          <span className="pr-title">{site}</span>
+          <span className="chip small">{LEVELS.find((x) => x.level === l)?.title}</span>
+          <span className="actions"><button title="Block on this site like on all pages" onClick={() => void save(withSiteBlocking(config, site, undefined))}>Like all pages</button></span>
+        </div>
+      ))}
     </section>
   )
 }

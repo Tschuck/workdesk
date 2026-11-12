@@ -28,7 +28,7 @@ import { AdBlocker } from './ad-blocker'
 import { pageMenu } from './domain/page-menu'
 import { markdownLink } from './domain/page-refs'
 import { isSignInPopup } from './domain/popup'
-import { NO_SESSIONS, blockLevelOf, partitionFor, partitionsFor, isKnownPartition, isPinnedSession } from './domain/browser-sessions'
+import { NO_SESSIONS, partitionFor, partitionsFor, isKnownPartition, isPinnedSession } from './domain/browser-sessions'
 import { FileGrantStore, mayAsk, PagePermissions, PERMISSION_LABEL, wanted, type PagePermission } from './page-permissions'
 import { ExtensionsService } from './extensions-service'
 import { BookmarksService } from './bookmarks-service'
@@ -551,7 +551,7 @@ function registerIpc({ orchestrator, settings, remote, browserSessions, pagePerm
   ipcMain.handle(IPC.browserSessionsGet, () => browserSessions.current)
   ipcMain.handle(IPC.browserSessionsSet, async (_e, c: unknown) => {
     const saved = await browserSessions.set(c)
-    adBlocker?.setLevel(blockLevelOf(saved))
+    adBlocker?.setConfig(saved)
     // a new session needs the installed extensions too
     void extensions.load()
     return saved
@@ -1093,7 +1093,7 @@ app.whenReady().then(async () => {
   await sessionRules.load()
   browserSessions = sessionRules
   adBlocker = new AdBlocker(join(app.getPath('userData'), 'block-lists'))
-  adBlocker.setLevel(blockLevelOf(sessionRules.current))
+  adBlocker.setConfig(sessionRules.current)
   // sites that cannot be loaded: the page of a Pane that goes to one is stopped, and its Pane says so (it offers a pass for that page)
   const siteBlock = new SiteBlockService(service.status.dir, () => service.status.autoCommit.notifyChange())
   await siteBlock.load()

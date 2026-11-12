@@ -70,7 +70,8 @@ A site asks before it may use them (and macOS asks its own question the first ti
 
 ## Blocking
 
-- **Trackers and ads:** *Settings → Browser → Security*: *No blocking* (default), *Block trackers* (EasyPrivacy) or *Block trackers and ads* (EasyList, EasyPrivacy, Fanboy Annoyances, Peter Lowe's list). Requests to listed addresses are cancelled before they are sent, in every session; the page itself is never blocked. The lists download when a level is first chosen (the only network use of this feature) and renew weekly. Empty ad boxes are not hidden, there are no per-site exceptions yet, and open pages need a reload after a change.
+- **Trackers and ads:** *Settings → Browser → Security*: *No blocking* (default), *Block trackers* (EasyPrivacy) or *Block trackers and ads* (EasyList, EasyPrivacy, Fanboy Annoyances, Peter Lowe's list). Requests to listed addresses are cancelled before they are sent, in every session; the page itself is never blocked. The lists download when a level is first chosen (the only network use of this feature) and renew weekly. Empty ad boxes are not hidden, and open pages need a reload after a change.
+- **Per site:** the **site settings icon** in the address bar gives the open site a level of its own (for its whole site: `github.com` covers `gist.github.com`), or lets it follow the one of all pages again; the page reloads with it. *Settings → Browser → Security* lists the sites that have their own level.
 - **Blocked sites:** *Settings → Browser → Blocked sites* lists sites (`reddit.com`, covering subdomains, or a part such as `reddit.com/r/all`) that do not load in any browser tab. The tab shows a page instead, with *Go back* and, after a ten-second wait, a **pass for that one page** for ten minutes. Page changes of single-page sites are caught too. The list is in the Status Repo (`site-block.json`); passes are only in memory.
 
 ## Extensions

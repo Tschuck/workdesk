@@ -717,6 +717,7 @@ h2 .icon-action.reload { margin-left: 6px; vertical-align: middle; }
 .activity li { display: grid; grid-template-columns: 1fr auto; column-gap: 6px; padding: 3px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; }
 .activity li:hover { background: rgb(var(--fg-rgb) / .07); }
 .activity-desk { color: rgb(var(--fg-rgb) / .8); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-blocking { display: flex; flex-direction: column; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
 .activity time { color: var(--dim); font-size: 10px; }
 .activity-text { grid-column: 1 / -1; color: rgb(var(--fg-rgb) / .55); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .activity li.ev-signal .activity-text { color: var(--yellow); }
