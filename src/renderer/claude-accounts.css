@@ -28,7 +28,10 @@
 .claude-overview .overview-meta { display: flex; gap: 12px; align-items: baseline; min-width: 0; }
 .claude-overview .overview-state { flex: none; }
 .claude-overview .overview-meta .hint { flex: none; }
-/* in a narrow column (the Dashboard's side): the name and the time on the first line, who / what state / what it says under it */
-.dash-side .claude-overview .overview-row { grid-template-columns: 8px minmax(0, 1fr) auto; row-gap: 2px; }
-.dash-side .claude-overview .overview-meta { grid-column: 2 / 4; grid-row: 2; flex-wrap: wrap; row-gap: 0; }
-.dash-side .claude-overview .overview-msg { flex: 1 1 100%; }
+/* in a narrow column (the Dashboard's side, the Orchestrator's list): the name and the time on the first line, who / what state / what it says under it */
+.claude-overview .overview-list { container-type: inline-size; }
+@container (max-width: 560px) {
+  .claude-overview .overview-row { grid-template-columns: 8px minmax(0, 1fr) auto; row-gap: 2px; }
+  .claude-overview .overview-meta { grid-column: 2 / 4; grid-row: 2; flex-wrap: wrap; row-gap: 0; }
+  .claude-overview .overview-msg { flex: 1 1 100%; }
+}
