@@ -56,7 +56,8 @@ export const ICONS = {
   upload: svg(<path d="M8 10V2.5M5 5.2l3-3 3 3M3 12.5h10" />),
   sidebar: svg(<path d="M2.5 3h11v10h-11zM6.5 3v10" />),
   review: svg(<path d="M2.5 4h6M2.5 8h4M2.5 12h6M9.5 10.5l2 2 3.5-4.5" />),
-  store: svg(<path d="M8 2.5v7M5 6.8l3 3 3-3M3 12.5h10" />)
+  store: svg(<path d="M8 2.5v7M5 6.8l3 3 3-3M3 12.5h10" />),
+  reveal: svg(<path d="M8 4.2a3.8 3.8 0 1 0 0 7.6A3.8 3.8 0 0 0 8 4.2zM8 1.5v2.7M8 11.8v2.7M1.5 8h2.7M11.8 8h2.7" />)
 } as const
 
 export type IconName = keyof typeof ICONS

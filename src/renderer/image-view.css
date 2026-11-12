@@ -1,0 +1,14 @@
+.image-view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.image-bar { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-bottom: 1px solid var(--line); background: var(--bg-dark); }
+.image-bar button.on { background: rgb(var(--yellow-rgb) / .2); border-color: var(--yellow); color: var(--fg-bright); }
+/* a checkerboard, so transparent parts show as such */
+.image-body {
+  position: relative; flex: 1; min-height: 0; overflow: auto; display: grid; place-items: center; padding: 12px;
+  background-color: var(--bg-dark);
+  background-image: linear-gradient(45deg, rgb(128 128 128 / .18) 25%, transparent 25%, transparent 75%, rgb(128 128 128 / .18) 75%), linear-gradient(45deg, rgb(128 128 128 / .18) 25%, transparent 25%, transparent 75%, rgb(128 128 128 / .18) 75%);
+  background-size: 16px 16px; background-position: 0 0, 8px 8px;
+}
+/* at its real size it scrolls; fitted it is centred and as large as the pane allows, never larger than it is */
+.image-body img { cursor: zoom-out; }
+.image-body.fit { overflow: hidden; }
+.image-body.fit img { position: absolute; inset: 0; margin: auto; max-width: calc(100% - 24px); max-height: calc(100% - 24px); cursor: zoom-in; }

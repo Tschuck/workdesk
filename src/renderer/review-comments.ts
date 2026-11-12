@@ -25,7 +25,14 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   return e
 }
 
-export function attachComments(m: MonacoApi, ed: Editor, host: CommentsHost): { refresh: () => void; dispose: () => void } {
+export interface AttachedComments {
+  refresh: () => void
+  /** opens the box on `line`: the comment there to edit, or a new one */
+  add: (line: number) => void
+  dispose: () => void
+}
+
+export function attachComments(m: MonacoApi, ed: Editor, host: CommentsHost): AttachedComments {
   let editing: { id?: string; line: number } | undefined
   let zones: string[] = []
   let watchers: ResizeObserver[] = []
@@ -207,6 +214,10 @@ export function attachComments(m: MonacoApi, ed: Editor, host: CommentsHost): { 
 
   return {
     refresh: render,
+    add: (line) => {
+      editing = { id: host.comments().find((c) => c.line === line)?.id, line }
+      render()
+    },
     dispose: () => {
       down.dispose()
       move.dispose()

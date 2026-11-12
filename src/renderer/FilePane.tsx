@@ -3,7 +3,7 @@ import { PANEL_SIZES, Resizer } from './Resizer'
 import { ScopeSwitch } from './ScopeSwitch'
 import { scopedRoots, useScope } from './scope'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FileRoot, SearchHit } from '../main/files'
 import { ContextMenu } from './ContextMenu'
 import { foldersOf, searchRoots } from './search-in'
@@ -13,7 +13,9 @@ import { buildTree, filterFiles, setFileDirty, type TreeNode } from './file-buff
 import { DiffView, type DiffRequest } from './DiffView'
 import { cleanError, isGitRoot, notifyGitChanged, useMarks, type RootMarks } from './git-state'
 import { PdfView } from './PdfView'
-import { attachComments } from './review-comments'
+import { ImageView } from './ImageView'
+import { imageMime, isSvg } from './image-types'
+import { attachComments, type AttachedComments } from './review-comments'
 import { useCommentsHost } from './comments-host'
 import { loadEditorState, makeState, pruneEditorStates, restorable, saveEditorState } from './editor-state'
 import { canStep, historyDirection, recordPlace, stepPlace, forgetFile } from './nav-history'
@@ -71,6 +73,10 @@ export function focusSearch(scope: ParentNode | null | undefined): void {
 export const SEARCH_EVENT = 'workdesk:file-search'
 /** Asks the WorkDesk to open its file finder (`find`: by name, `definition`: go to definition); sent from the page of a new file. */
 export const FINDER_EVENT = 'workdesk:file-finder'
+/** Tells the file tree (`.file-tree-wrap`) to fold everything but the folders down to the file shown, and to scroll to it. */
+export const REVEAL_EVENT = 'workdesk:file-reveal'
+/** Tells a File pane to show another file (`detail`: path and line), asking first when it has unsaved changes; ⌘D from a File pane. */
+export const OPEN_EVENT = 'workdesk:file-open'
 
 /** One file in a light editor (Monaco), with a file tree and a search on the left; ⌘B shows or hides them, ⌘S saves. */
 export function FilePane({ deskId, paneId, path, line, navigate, beside, page }: Props) {
@@ -96,6 +102,11 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
   const [refused, setRefused] = useState<string>()
   // a PDF is drawn by pdf.js (with a find bar), from the bytes of the file
   const [pdf, setPdf] = useState<Uint8Array>()
+  // an image is shown as a picture, from its bytes; an SVG is text in the editor too, and `svgPicture` shows its picture over it
+  const [image, setImage] = useState<{ bytes: Uint8Array; mime: string }>()
+  const [svgPicture, setSvgPicture] = useState(true)
+  const [svgText, setSvgText] = useState('')
+  const svgBytes = useMemo(() => new TextEncoder().encode(svgText), [svgText])
   // the file is too large for the grammars of VS Code: Monaco's own tokenizer colours it
   const [simplified, setSimplified] = useState(false)
   // the grammars of VS Code did not start: why
@@ -105,6 +116,7 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
   const root = useRef<HTMLDivElement>(null)
   const editor = useRef<Editor | undefined>(undefined)
   const monaco = useRef<MonacoApi | undefined>(undefined)
+  const canComment = useRef<{ set: (v: boolean) => void } | undefined>(undefined)
   const [ready, setReady] = useState(false)
   const saved = useRef(0)
   const current = useRef<{ path?: string; scratch: boolean }>({ scratch: false })
@@ -151,6 +163,9 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
       // the path of the file shown, from the editor's right-click menu
       ed.addAction({ id: 'workdesk.copy-relative-path', label: 'Copy Relative Path', contextMenuGroupId: '9_cutcopypaste', contextMenuOrder: 10, run: (e) => copyPathRef.current(true, e.getPosition()?.lineNumber) })
       ed.addAction({ id: 'workdesk.copy-path', label: 'Copy Path', contextMenuGroupId: '9_cutcopypaste', contextMenuOrder: 11, run: () => copyPathRef.current(false) })
+      // a review comment on the right-clicked line, when the file is in a Branch folder
+      canComment.current = ed.createContextKey<boolean>('workdeskCanComment', false)
+      ed.addAction({ id: 'workdesk.add-comment', label: 'Add Review Comment', precondition: 'workdeskCanComment', contextMenuGroupId: 'navigation', contextMenuOrder: 1.8, run: (e) => addCommentRef.current(e.getPosition()?.lineNumber ?? 1) })
       ed.addAction({ id: 'workdesk.rename-symbol', label: 'Rename Symbol (text based)', keybindings: [m.KeyMod.Alt | m.KeyMod.Shift | m.KeyCode.F6], contextMenuGroupId: 'navigation', contextMenuOrder: 1.7, run: () => openUsagesRef.current('rename') })
       // the cursor history (⌃- / ⌃⇧-) and what is remembered across restarts follow the cursor and the scroll
       ed.onDidChangeCursorPosition((e) => {
@@ -258,6 +273,7 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
     ed.setScrollTop(top)
     setDiskChanged(false)
     diskText.current = file.content
+    setSvgText(file.content)
     saved.current = model.getAlternativeVersionId()
     setDirty(false)
     setFileDirty(paneId, false)
@@ -303,7 +319,19 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
     setFileDirty(paneId, false)
     current.current = { path, scratch: false }
     setPdf(undefined)
+    setImage(undefined)
+    setSvgPicture(true)
     if (!path) return
+    const mime = imageMime(path)
+    if (mime && !isSvg(path)) {
+      void api.filesReadBinary(deskId, path).then(
+        (bytes) => live && setImage({ bytes, mime }),
+        (e) => live && setError(cleanError(e))
+      )
+      return () => {
+        live = false
+      }
+    }
     if (/\.pdf$/i.test(path)) {
       void api.filesReadBinary(deskId, path).then(
         (bytes) => live && setPdf(bytes),
@@ -320,6 +348,7 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
         const uri = m.Uri.file(path)
         m.editor.getModel(uri)?.dispose()
         diskText.current = file.content
+        setSvgText(file.content)
         // after a restart the pane shows what it showed: cursor, scroll and unsaved changes (only if the file is as it was)
         const back = loaded.current ? undefined : restorable(loadEditorState(paneId), path, file.content)
         const model = m.editor.createModel(file.content, undefined, uri)
@@ -356,7 +385,8 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
         const at = ed.getPosition()
         if (at) recordPlace(deskId, { path, line: at.lineNumber, column: at.column })
         // a file chosen in an open pane takes the keyboard; a pane that was just made leaves it alone
-        if (loaded.current) ed.focus()
+        // (an SVG shows its picture: the hidden editor must not take what is typed)
+        if (loaded.current && !isSvg(path)) ed.focus()
         loaded.current = true
       },
       (e: Error) => live && setError(e.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, ''))
@@ -368,6 +398,7 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
   }, [ready, path, line])
 
   /** Show another file: here, or beside this Pane; asks first when this one has changes that are not saved. */
+  const openPathRef = useRef<(to: string, at?: number) => Promise<void>>(async () => undefined)
   const openPath = async (to: string, at?: number, besideFlag?: boolean) => {
     if (!besideFlag && dirty && !current.current.scratch && !window.confirm('This file has changes that are not saved. Open the other file and lose them?')) return
     if (besideFlag) {
@@ -397,6 +428,7 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
   }
 
   /** ⌃- / ⌃⇧-: back / forward to the places the cursor was, also in other files */
+  openPathRef.current = openPath
   const goHistory = (dir: -1 | 1) => {
     const place = stepPlace(deskId, dir)
     if (!place) return
@@ -426,6 +458,7 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
     ed.updateOptions({ glyphMargin: true })
     const a = attachComments(m, ed, commentsHost)
     attachedComments.current = a
+    if (pendingComment.current) (a.add(pendingComment.current), (pendingComment.current = undefined))
     return () => {
       attachedComments.current = undefined
       a.dispose()
@@ -434,7 +467,17 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commentsHost, modelPath, diff, commentsOn, commentCount > 0])
   useEffect(() => attachedComments.current?.refresh(), [myComments])
-  const attachedComments = useRef<{ refresh: () => void; dispose: () => void } | undefined>(undefined)
+  const attachedComments = useRef<AttachedComments | undefined>(undefined)
+  // the line asked for before the comments were shown: its box opens once they are
+  const pendingComment = useRef<number | undefined>(undefined)
+  const addComment = (line: number) => {
+    if (attachedComments.current) return attachedComments.current.add(line)
+    pendingComment.current = line
+    setCommentsOn(true)
+  }
+  const addCommentRef = useRef(addComment)
+  addCommentRef.current = addComment
+  useEffect(() => canComment.current?.set(!!commentsHost && !diff), [commentsHost, diff, ready])
   /** false when the file that is about to be renamed or removed is the one shown, with changes that would be lost */
   const mayChange = (abs: string): boolean => abs !== path || !dirty || current.current.scratch || window.confirm('This file has changes that are not saved. Go on and lose them?')
 
@@ -456,8 +499,13 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
   useEffect(() => {
     const el = root.current
     const on = () => openSearchRef.current()
+    const open = (e: Event) => {
+      const { path: to, line: at } = (e as CustomEvent<{ path: string; line?: number }>).detail
+      void openPathRef.current(to, at)
+    }
     el?.addEventListener(SEARCH_EVENT, on)
-    return () => el?.removeEventListener(SEARCH_EVENT, on)
+    el?.addEventListener(OPEN_EVENT, open)
+    return () => (el?.removeEventListener(SEARCH_EVENT, on), el?.removeEventListener(OPEN_EVENT, open))
   }, [])
 
   // the path of the file shown, to the clipboard: whole, or from its folder (the Branch's, notes, …)
@@ -471,7 +519,17 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
   const copyPathRef = useRef(copyPath)
   copyPathRef.current = copyPath
   const [nameMenu, setNameMenu] = useState<{ x: number; y: number }>()
+  // the tree, on its Files tab, with only the folders down to this file open (it is not there yet when it was hidden)
+  const revealInTree = () => {
+    setSide('files')
+    toggleTree(true)
+    const go = () => !!root.current?.querySelector('.file-tree-wrap')?.dispatchEvent(new Event(REVEAL_EVENT))
+    if (!go()) setTimeout(go, 60)
+  }
 
+  // an SVG shows its picture until Source is asked for; the picture is drawn from the text in the editor, saved or not
+  const svgShown = !!path && isSvg(path) && svgPicture && !!modelPath && !refused && !diff
+  const svgToggle = (picture: boolean) => (picture && setSvgText(editor.current?.getValue() ?? ''), setSvgPicture(picture))
   const name = path ? path.split('/').pop() : 'No file'
   const where = path && rootOf(path) ? `${rootOf(path)!.label}/${rel(rootOf(path)!.path, path)}` : path
 
@@ -500,7 +558,8 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
           onClose={() => setNameMenu(undefined)}
           items={[
             { label: 'Copy relative path', onClick: () => copyPath(true) },
-            { label: 'Copy path', onClick: () => copyPath(false) }
+            { label: 'Copy path', onClick: () => copyPath(false) },
+            ...(page ? [] : [{ label: 'Reveal in the file tree', onClick: revealInTree }])
           ]}
         />
       )}
@@ -527,6 +586,11 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
           <span className="file-name" title={where} onContextMenu={(e) => path && (e.preventDefault(), setNameMenu({ x: e.clientX, y: e.clientY }))}>{name}{dirty && !current.current.scratch ? ' ●' : ''}</span>
           <span className="file-where hint">{where && where !== name ? where : ''}</span>
           <span className="file-spacer" />
+          {path && isSvg(path) && modelPath && !diff && (
+            <button type="button" title={svgShown ? 'Show the SVG as text, to edit it' : 'Show the SVG as a picture (with the changes not saved yet)'} onClick={() => svgToggle(!svgShown)}>
+              {svgShown ? 'Source' : 'Picture'}
+            </button>
+          )}
           <button type="button" className={'icon-toggle' + (wrap ? ' on' : '')} title={wrap ? 'Word wrap is on (⌥Z)' : 'Word wrap is off (⌥Z)'} aria-pressed={wrap} onClick={() => toggleFileWrap()}>{ICONS.wrap}</button>
           <button
             type="button"
@@ -590,8 +654,10 @@ export function FilePane({ deskId, paneId, path, line, navigate, beside, page }:
             }}
           />
         )}
-        <div className="file-editor" ref={host} style={{ display: path && !refused && !pdf && !diff ? undefined : 'none' }} />
+        <div className="file-editor" ref={host} style={{ display: path && !refused && !pdf && !image && !svgShown && !diff ? undefined : 'none' }} />
         {pdf && !diff && <PdfView bytes={pdf} name={name ?? ''} />}
+        {image && !diff && <ImageView bytes={image.bytes} mime={image.mime} name={name ?? ''} />}
+        {svgShown && <ImageView bytes={svgBytes} mime="image/svg+xml" name={name ?? ''} />}
       </div>
     </div>
   )
@@ -821,16 +887,39 @@ function FilesTab({ deskId, roots, marks, current, onOpen, onMoved, mayChange, o
 
   // the file in the editor is shown in the tree: the folders above it open, and the row comes into view
   const wrap = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const root = current ? roots.find((r) => current.startsWith(r.path + '/')) : undefined
-    if (!current || !root) return
+  const dirsTo = (file: string | undefined): string[] => {
+    const root = file ? roots.find((r) => file.startsWith(r.path + '/')) : undefined
+    if (!file || !root) return []
     const dirs = [root.path]
-    for (const part of current.slice(root.path.length + 1).split('/').slice(0, -1)) dirs.push(`${dirs[dirs.length - 1]}/${part}`)
+    for (const part of file.slice(root.path.length + 1).split('/').slice(0, -1)) dirs.push(`${dirs[dirs.length - 1]}/${part}`)
+    return dirs
+  }
+  const scrollToCurrent = () => setTimeout(() => wrap.current?.querySelector('.file-leaf.on')?.scrollIntoView({ block: 'nearest' }), 80)
+  useEffect(() => {
+    const dirs = dirsTo(current)
+    if (!dirs.length) return
     setOpen((o) => (dirs.every((d) => o.has(d)) ? o : new Set([...o, ...dirs])))
     // the rows are there after the list is read and the folders are open
-    const t = setTimeout(() => wrap.current?.querySelector('.file-leaf.on')?.scrollIntoView({ block: 'nearest' }), 80)
+    const t = scrollToCurrent()
     return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, roots, lists])
+  // Reveal: only the folders down to the file shown stay open
+  const reveal = () => {
+    const dirs = dirsTo(current)
+    if (!dirs.length) return
+    setFilter('')
+    setOpen(new Set(dirs))
+    scrollToCurrent()
+  }
+  const revealRef = useRef(reveal)
+  revealRef.current = reveal
+  useEffect(() => {
+    const el = wrap.current
+    const on = () => revealRef.current()
+    el?.addEventListener(REVEAL_EVENT, on)
+    return () => el?.removeEventListener(REVEAL_EVENT, on)
+  }, [])
 
   const rootOf = (abs: string): FileRoot | undefined => roots.find((r) => abs === r.path || abs.startsWith(r.path + '/'))
   /** runs a change of the files, shows what went wrong, and reads the folder again */
@@ -909,7 +998,10 @@ function FilesTab({ deskId, roots, marks, current, onOpen, onMoved, mayChange, o
           }}
         />
       )}
-      <input className="file-filter file-focus" placeholder="Find a file…" value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <div className="file-search-row">
+        <input className="file-filter file-focus" placeholder="Find a file…" value={filter} onChange={(e) => setFilter(e.target.value)} />
+        <button type="button" className="toggle icon-toggle" title="Reveal the file shown: fold the tree down to it" aria-label="Reveal the file shown" disabled={!dirsTo(current).length} onClick={reveal}>{ICONS.reveal}</button>
+      </div>
       {error && <p className="error" onClick={() => setError(undefined)}>{error}</p>}
       {filter.trim() ? (
         <ul className="file-results">

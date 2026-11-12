@@ -27,7 +27,7 @@ import { DeskLinksContext, OpenLinkContext, OpenLinksContext, type DeskLink } fr
 import { navDirection, neighbourPane, splitDirection, type NavDirection } from './pane-nav'
 import { SplitPicker } from './SplitPicker'
 import { FileFinder } from './FileFinder'
-import { FINDER_EVENT, SEARCH_EVENT } from './FilePane'
+import { FINDER_EVENT, OPEN_EVENT, SEARCH_EVENT } from './FilePane'
 import { ReviewMode } from './ReviewMode'
 import { NewNote } from './NewNote'
 import { JwtModal } from './JwtModal'
@@ -447,7 +447,13 @@ export function DeskView({ desk, state, run, visible, onClear, onCombine }: Prop
         return
       }
       if (a === 'definition') {
-        if (!parkedRef.current) setFinder({ mode: 'definition', then: (path, line) => openFileRef.current(path, line) })
+        if (parkedRef.current) return
+        // from a File pane: the definition opens in that pane, not in a new Tab
+        const pane = document.activeElement?.closest<HTMLElement>('.pane-cell .file-pane')
+        setFinder({
+          mode: 'definition',
+          then: (path, line) => (pane?.isConnected ? pane.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: { path, line } })) : openFileRef.current(path, line))
+        })
         return
       }
       if (a === 'reopen-closed') {
