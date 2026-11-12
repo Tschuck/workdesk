@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { byDesk, parsePrRef, prPageUrl, prsInDesks } from './desk-prs'
+import { arrangeDeskPrs, byDesk, parsePrRef, prPageUrl, prsInDesks } from './desk-prs'
 import { isReviewDesk, prAuthors, sectionOf, sidebarOrder } from './order'
 import type { WorkDesk } from './types'
 
@@ -88,6 +88,32 @@ describe('the pull requests by WorkDesk', () => {
     expect(byDesk(list).map((g) => [g.deskName, g.prs.map((p) => p.id)])).toEqual([
       ['Review', ['a/b#1', 'a/b#2']],
       ['Feature', ['a/b#3']]
+    ])
+  })
+})
+
+describe('ordering and grouping the pull requests', () => {
+  const desks = [
+    desk('a', { name: 'Alpha', stage: 'reviewed-waiting', createdAt: 3, items: [{ ...pr('a/b#1', 'review'), author: 'zoe' }] }),
+    desk('b', { name: 'Beta', stage: 'to-review', createdAt: 1, items: [{ ...pr('a/b#2', 'review'), author: 'adam' }] }),
+    desk('c', { name: 'Gamma', stage: 'to-review', createdAt: 2, items: [pr('a/b#3', 'review')] }),
+    desk('m', { name: 'Mine', stage: 'waiting', createdAt: 0, items: [pr('a/b#4', 'mine')] })
+  ]
+  const names = (s: { title?: string; cards: { deskName: string }[] }[]) => s.map((x) => [x.title, x.cards.map((c) => c.deskName)])
+
+  it('by WorkDesk: one list, the ones to review first, in the order asked for', () => {
+    const prs = prsInDesks(desks)
+    expect(names(arrangeDeskPrs(prs, 'desk', 'name'))).toEqual([[undefined, ['Alpha', 'Beta', 'Gamma', 'Mine']]])
+    expect(names(arrangeDeskPrs(prs, 'desk', 'oldest'))).toEqual([[undefined, ['Beta', 'Gamma', 'Alpha', 'Mine']]])
+    expect(names(arrangeDeskPrs(prs, 'desk', 'newest'))).toEqual([[undefined, ['Alpha', 'Gamma', 'Beta', 'Mine']]])
+    expect(names(arrangeDeskPrs(prs, 'desk', 'author'))).toEqual([[undefined, ['Beta', 'Alpha', 'Gamma', 'Mine']]])
+  })
+
+  it('by Stage: To review before Reviewed, waiting, then your own', () => {
+    expect(names(arrangeDeskPrs(prsInDesks(desks), 'stage', 'oldest'))).toEqual([
+      ['To review', ['Beta', 'Gamma']],
+      ['Reviewed, waiting', ['Alpha']],
+      ['Waiting', ['Mine']]
     ])
   })
 })

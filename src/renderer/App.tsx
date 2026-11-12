@@ -731,7 +731,13 @@ export function App() {
         )}
         {jwtOnFiles && <JwtModal deskId={GLOBAL_DESK} onClose={() => setJwtOnFiles(false)} onOpen={(p) => (setJwtOnFiles(false), fileTabs.open(p), setFilesOpened(true), setSelection({ kind: 'files' }))} />}
         {noteOnFiles && <NewNote deskId={GLOBAL_DESK} onClose={() => setNoteOnFiles(false)} onCreated={(p) => (setNoteOnFiles(false), fileTabs.open(p), setFilesOpened(true), setSelection({ kind: 'files' }))} />}
-        {selection.kind === 'desk-prs' && <DeskPrsView desks={state.desks} openDesk={selectDesk} />}
+        {selection.kind === 'desk-prs' && <DeskPrsView
+            desks={state.desks}
+            openDesk={selectDesk}
+            onPark={(id) => void run(() => window.workdesk.parkDesk(id))}
+            onPostpone={setPostponing}
+            onBringBack={(id) => void run(() => window.workdesk.postponeDesk(id, null))}
+          />}
         {selection.kind === 'time' && <TimeView desks={state.desks} openDesk={selectDesk} scoped={pcfg.active !== 'all' && pcfg.profiles.length > 1} />}
         {selection.kind === 'orchestrator' && <OrchestratorView state={state} openDesk={selectDesk} openTab={openTabInDesk} />}
         {selection.kind === 'settings' && <SettingsView section={selection.section} onSection={(section) => setSelection({ kind: 'settings', section })} />}
